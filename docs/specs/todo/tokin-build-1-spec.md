@@ -20,7 +20,7 @@
 
 | # | Question | Raised By | Resolved |
 |:--|:---------|:----------|:---------|
-| 1 | Does a pane receive raw key presses (`Client.onKey`) for shortcuts such as `w`, or are Buttons with focus and Enter the only input? T6 checks this against `claude-code.d.ts` and falls back to Buttons only | Claude | [ ] |
+| 1 | Does a pane receive raw key presses (`Client.onKey`) for shortcuts such as `w`, or are Buttons with focus and Enter the only input? Answer: raw keys reach only a `Client` element, which needs a separate surface module and is absent on vscode and mobile. Build 1 uses Buttons with focus and Enter. See README | Claude | [x] |
 | 2 | Which GitHub account and repo name hosts toKin, once it is ready to share | User | [ ] |
 | 3 | Subtitle choice (From Pawn to Gold, Scaling Laws, and so on). Not needed for Build 1 | User | [ ] |
 
@@ -35,7 +35,7 @@
 - **Agents**: the player creates an agent when free compute covers a model footprint. Each agent has a generated name, one model, and one job (Earn, Research, Train). Reassigning is free.
 - **Earn**: an Earn agent pays `tok/s × contract rate × quality` on the best contract its context allows (after Contract Broker), or on the contract the player picks (before it).
 - **Research**: a Research agent makes `tok/s × quality² × 0.01` RP/s. Twelve research items, each with a cost, an effect, and an unlock condition.
-- **Training**: a training run reserves a chosen amount of compute until it delivers the model's training cost in kFLOP·s. When it ends, the next kin model unlocks.
+- **Training**: a training run reserves a chosen amount of compute (all free compute, or half of it) until it delivers the model's training cost in kFLOP·s. When it ends, the next kin model unlocks.
 - **Models**: kin-0.1 to kin-0.4 with footprint, tok/s, quality, and context per the content tables.
 - **Distill**: after the Distillation research, the player can distill. The payout is `floor(k × sqrt(lifetime_tokens / T0))` Logits. The reset follows the reset rules. A confirmation step in the pane shows the payout before the reset.
 - **Logits shop**: six items (Warm Start, Soft Targets, Long Memory, Curriculum, Hand-me-down, Old Notes). Each unspent Logit gives +2% tok/s.
@@ -62,10 +62,10 @@
 - `.claude-plugin/plugin.json`, `hooks/hooks.json`, `types/index.d.ts`
 - `hooks/register.tsx`: wiring only
 - `hooks/ui/*.tsx`: pane views
-- `engine/`: `state.ts`, `rng.ts`, `economy.ts`, `step.ts`, `actions.ts`, `distill.ts`, `story.ts`, `save.ts`, `format.ts`
+- `core/` (the spec first named it `engine/`): `state.ts`, `rng.ts`, `economy.ts`, `step.ts`, `actions.ts`, `distill.ts`, `story.ts`, `save.ts`, `format.ts`, plus `ports.ts`, `game.ts`, `view.ts` for portability
 - `content/era1.ts`: all tables as data
 - `sim/balance.ts`: headless greedy bot
-- `tests/*.test.ts`
+- `core/*.spec.ts` (bun test) and `hooks/**/*.test.ts(x)` (claude plugin test)
 
 **Data Model** (`GameState`, versioned, plain JSON):
 - `version`, `seed`, `rngState`, `year`, `cash`, `rp`, `lifetimeTokens`, `runTokens`
@@ -218,7 +218,7 @@ Feature: toKin Build 1
       Given Distillation is researched and lifetime tokens are high enough for 4 Logits
       When the player confirms Distill
       Then the player holds 4 Logits
-      And cash, machines, agents, research, and models above kin-0.1 reset
+      And cash, machines, agents, research (except Distillation itself and Old Notes items), and models above kin-0.1 reset
       And fired story beats and stats remain
 
     Scenario: Distill before it is unlocked

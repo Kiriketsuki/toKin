@@ -66,6 +66,11 @@ On the first run the pane asks for a founder name. Type it and press Enter.
 Every control is a button in the pane. Click it, or move focus and press Enter.
 There are no global hotkeys, because the pane shares the terminal with Claude Code.
 
+Raw key presses (Open Question 1): the plugin API delivers raw keys only to a
+`Client` element through `onKey`. A `Client` needs a separate surface module, and the
+vscode and mobile surfaces do not have it. So Build 1 uses Buttons with focus and
+Enter on every surface, and single-key shortcuts such as `w` are not available.
+
 | Control | Effect |
 |:--|:--|
 | Work | One hand-worked contract |
@@ -88,6 +93,17 @@ no effect on the economy, and each kind shows at most once per 10 minutes.
 |:--|:--|
 | A rate limit or an overloaded error from the API | the punch-card supplier is out of stock. come back later. |
 | A compaction of your conversation | the ledger was boiled down. the sums survived. the margin notes did not. |
+
+## Playtest handoff (T10)
+
+The automated checks cover the engine, the host wiring, and the balance. The
+live playtest is still yours:
+
+1. Start a session with `claude --plugin-dir /home/kiriketsuki/dev/Personal/toKin`.
+2. Run `/tokin`, name the founder, and play from a fresh save to the first Distill.
+3. Check the transcript for dim plugin lines that report a skipped hook or a refused render.
+4. Restart the session, run `/tokin` again, and check that the save and the offline catch-up line appear.
+5. Open a second session, run `/tokin` there, and check that it shows the read-only line.
 
 ## Architecture and porting
 

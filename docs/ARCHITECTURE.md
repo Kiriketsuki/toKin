@@ -88,7 +88,7 @@ button keys: `work`, `buy:<machine>`, `create:<model>:<job>`,
 
 Content types in `core/types.ts` hold data only. Effects, triggers and cost
 curves are tagged unions, so a port in another language reads the same
-JSON. `bun run export:content` writes `build/content/era1.json` and refuses a
+JSON. `bun run export:content` writes `content/era1.json` and refuses a
 pack that JSON cannot carry. `content/era1.ts` exports `ERA1: ContentPack`.
 
 The core never names a content id. It reads behaviour from effects. The one
@@ -377,7 +377,7 @@ A future standalone build (web, desktop or terminal) reuses `core/` and
 `content/` unchanged:
 
 1. Implement `HostPorts`. Storage maps to `localStorage`, IndexedDB or a file. The clock maps to `Date.now` and `setInterval`. The notifier maps to the host's toast and log. `instanceId` names the window or process. `newSeed` uses the host's random source.
-2. Load the content. A TypeScript host imports `content/era1.ts`. Another language loads `build/content/era1.json` from `bun run export:content`.
+2. Load the content. A TypeScript host imports `content/era1.ts`. Another language loads `content/era1.json` from `bun run export:content`.
 3. Start the runtime from `core/game.ts` with the ports and the content. It loads the save, runs catch-up, takes the ticker lock and ticks.
 4. Draw the `ViewModel` with the host's own widgets. Map each control to its `ActionOption.action` and dispatch it.
 5. A single-instance host still takes the lock. The lock costs nothing there, and it protects a save that two windows share.
