@@ -280,7 +280,7 @@ Feature: toKin Build 1
 | T7.1 | Wiring tests with `claude plugin test`: save round-trip, catch-up equals live ticks, lock | High | T7 | done |
 | T8   | Balance bot `sim/balance.ts` and tuning of the content numbers to the targets | High | T5 | done |
 | T9   | Should-haves: mirror events, half-cost reveal, time to afford | Med | T7 | done |
-| T10  | Manual playtest in a live session, fixes, README play instructions | Med | T8, T9 | pending |
+| T10  | Manual playtest in a live session, fixes, README play instructions | Med | T8, T9 | done |
 | REVIEW-FIX | Address review findings across core and hooks | High | T9 | done |
 
 ---
@@ -292,7 +292,7 @@ Feature: toKin Build 1
 - [ ] The balance bot meets the targets on 10 seeds: first agent before minute 3, kin-0.2 before minute 10, Distill unlocked at 30 to 45 min, run 2 at least 2x faster
 - [ ] Offline catch-up equals the same time of live ticks within 1%
 - [ ] A save from each schema version loads after migration
-- [ ] A manual playtest from a fresh save to the first Distill completes with no errors in the transcript's plugin lines
+- [x] A manual playtest from a fresh save to the first Distill completes with no errors in the transcript's plugin lines (see docs/playtest-2026-10-08.md)
 
 ---
 
