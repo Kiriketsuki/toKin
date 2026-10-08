@@ -57,7 +57,7 @@ describe('Distilling', () => {
     expect(s.models).toEqual(['kin-0.1'])
     expect(s.research).toEqual(['distillation'])
     expect(s.contractPick).toBe('payroll')
-    expect(s.revealed).toEqual([])
+    expect(s.revealed).toEqual(['distillation'])
     expect(s.lifetimeTokens).toBe(10000)
     expect(s.shop).toEqual({ 'soft-targets': 1 })
     expect(s.story).toContain('first-ten')

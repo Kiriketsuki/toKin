@@ -281,6 +281,7 @@ Feature: toKin Build 1
 | T8   | Balance bot `sim/balance.ts` and tuning of the content numbers to the targets | High | T5 | done |
 | T9   | Should-haves: mirror events, half-cost reveal, time to afford | Med | T7 | done |
 | T10  | Manual playtest in a live session, fixes, README play instructions | Med | T8, T9 | pending |
+| REVIEW-FIX | Address review findings across core and hooks | High | T9 | done |
 
 ---
 

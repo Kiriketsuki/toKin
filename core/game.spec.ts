@@ -281,3 +281,19 @@ describe('the single ticker lock', () => {
     await b.game.stop()
   })
 })
+
+describe('log mirroring', () => {
+  test('a viewer that adopts a newer save hears each log line once', async () => {
+    const world = makeWorld()
+    const a = launch(world, 'a')
+    await a.game.start()
+    a.game.dispatch({ type: 'nameFounder', name: 'Ada' })
+    repeat({ type: 'work' }, 5).forEach(a.game.dispatch)
+    const b = launch(world, 'b')
+    await b.game.start()
+    expect(b.game.snapshot().role).toBe('viewer')
+    await advanceWorld(world, 95_000)
+    const known = b.game.snapshot().state?.log.length ?? 0
+    expect(b.session.lines.length).toBeLessThanOrEqual(known)
+  })
+})

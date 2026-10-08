@@ -3,6 +3,7 @@
 
 import { holds } from './conditions'
 import { computeRates } from './economy'
+import { fill } from './format'
 import { withLog } from './state'
 import type { ContentPack, GameState, StoryBeatDef } from './types'
 
@@ -19,7 +20,9 @@ export function advanceStory(state: GameState, content: ContentPack): GameState 
   const due = dueBeats(state, content)
   if (due.length === 0) return state
   const fired = due.reduce<GameState>((acc, beat) => {
-    const logged = withLog(acc, content, beat.text)
+    // {agent} stands for the first agent the player created.
+    const text = fill(beat.text, { agent: acc.agents[0]?.name ?? 'it' })
+    const logged = withLog(acc, content, text)
     return {
       ...logged,
       story: [...logged.story, beat.id],

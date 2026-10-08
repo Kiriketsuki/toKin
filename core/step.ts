@@ -6,6 +6,7 @@
 // add a phase to PHASES. Training adds one that advances the run.
 
 import { computeRates, type Rates } from './economy'
+import { revealPhase } from './reveal'
 import { advanceStory } from './story'
 import { trainingPhase } from './training'
 import type { ContentPack, GameState } from './types'
@@ -34,7 +35,7 @@ export const productionPhase: Phase = (state, _content, dt, rates) => {
 // Story runs last so a beat sees the state after production.
 const storyPhase: Phase = (state, content) => advanceStory(state, content)
 
-export const PHASES: readonly Phase[] = [productionPhase, trainingPhase, storyPhase]
+export const PHASES: readonly Phase[] = [productionPhase, trainingPhase, storyPhase, revealPhase]
 
 // Before the player names the founder the game has not started, so the
 // clock does not run. A non-positive or non-finite dt changes nothing.

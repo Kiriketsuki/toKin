@@ -36,7 +36,7 @@ function setup(on: On, store: Record<string, unknown> = {}) {
     opened.push(e.id)
     return { value: { isPlaced: true } }
   })
-  return { clock, opened, writes }
+  return { clock, opened, writes, entries }
 }
 
 async function boot($: Engine) {
@@ -153,4 +153,34 @@ test('a compaction logs the ledger joke, a precompute does not', async ($, on) =
   expect(await countText($, /ledger was boiled down/)).toBe(0)
   await $.session.compact({ trigger: 'manual', messages: [SUMMARY] })
   expect(await countText($, /ledger was boiled down/)).toBe(1)
+})
+
+test('/tokin stop saves, releases the lock and stops the clock', async ($, on) => {
+  const { clock, entries } = setup(on)
+  await named($)
+  await clock.advance(2_000)
+  const result = await $.command.run({ command: 'tokin', args: 'stop', origin: { kind: 'composer' } } as never)
+  expect(JSON.stringify(result)).toContain('toKin stopped.')
+  const lock = entries.get('tokin.lock') as { sessionId?: string } | undefined
+  expect(lock?.sessionId).toBe('')
+  const saved = JSON.stringify(entries.get('tokin.save'))
+  await clock.advance(40_000)
+  expect(JSON.stringify(entries.get('tokin.save'))).toBe(saved)
+  const pane = await mountPane($)
+  expect(await pane.find({ type: 'Text', text: /Run \/tokin/ })).toBeDefined()
+  await pane.unmount()
+})
+
+test('the first lock claim uses the current time when /tokin runs long after session start', async ($, on) => {
+  const { clock, entries } = setup(on)
+  await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+  await clock.advance(3 * 3600_000)
+  await $.command.run({ command: 'tokin', args: '', origin: { kind: 'composer' } } as never)
+  const lock = entries.get('tokin.lock') as { heartbeat: number }
+  expect(lock.heartbeat).toBe(1_800_000_000_000 + 3 * 3600_000)
+  await clock.advance(2_000)
+  const pane = await mountPane($)
+  await pane.input({ key: 'founder-name', text: 'Ada' })
+  await pane.unmount()
+  expect(await countText($, /you slept/)).toBeLessThanOrEqual(1)
 })

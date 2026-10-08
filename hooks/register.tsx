@@ -12,6 +12,7 @@ import { ERA1 } from '../content/era1'
 import { Game } from '../core/game'
 import { buildView } from '../core/view'
 import { createPorts, newInstanceId, paneStore, publish } from './adapter'
+import type { SyncedPorts } from './adapter'
 import type { Bridge } from './adapter'
 import { handleName, handlePress } from './controller'
 import { drawPane } from './ui/pane'
@@ -27,6 +28,8 @@ const VIEWER_LINE = 'running in another session. this pane is read-only.'
 
 // The Game of this session. A hot reload drops it, and /tokin builds a new one.
 let game: Game | null = null
+// Refreshes the cached clock of the ports of `game`.
+let syncClock: (() => Promise<void>) | null = null
 
 // The state references. The engine needs plugin and key as literals.
 const GAME_REF = { plugin: 'tokin', key: 'game' } as const
@@ -50,7 +53,9 @@ function bridgeOf($: Host): Bridge {
 
 async function ensureGame(bridge: Bridge): Promise<Game> {
   if (game !== null) return game
-  const created = new Game(await createPorts(bridge, newInstanceId(await bridge.clockNow())), ERA1)
+  const ports: SyncedPorts = await createPorts(bridge, newInstanceId(await bridge.clockNow()))
+  const created = new Game(ports, ERA1)
+  syncClock = ports.sync
   created.subscribe(snapshot => void publish(bridge, snapshot))
   game = created
   return created
@@ -67,16 +72,32 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'tokin',
-      description: 'Open the toKin game pane',
+      description: 'Open the toKin game pane, or stop it with "/tokin stop"',
+      argumentHint: 'stop',
     })
-    await ensureGame(bridgeOf($))
+    const bridge = bridgeOf($)
+    const current = await ensureGame(bridge)
+    // A hot reload drops the Game but keeps $.state. When the role says a game
+    // was live, resume it. Otherwise publish the dormant snapshot, so the pane
+    // never shows a role that no Game backs.
+    const role = (await $.state.get(ROLE_REF)).value ?? 'dormant'
+    if (role === 'ticker' || role === 'viewer') await current.start()
+    await publish(bridge, current.snapshot())
 
     return next(e)
   })
 
-  on('command.run', { command: 'tokin' }, async $ => {
+  on('command.run', { command: 'tokin' }, async ($, e) => {
     const bridge = bridgeOf($)
     const current = await ensureGame(bridge)
+    if (e.args.trim() === 'stop') {
+      await current.stop()
+      await publish(bridge, current.snapshot())
+
+      return { text: 'toKin stopped.' }
+    }
+    // The cached clock is from session start. Refresh it before the game reads the time.
+    await syncClock?.()
     await current.start()
     await publish(bridge, current.snapshot())
     await $.ui.open(openPane)

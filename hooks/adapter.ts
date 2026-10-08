@@ -34,12 +34,17 @@ export function newInstanceId(nowMs: number): string {
 // Builds the ports over a Bridge. clock.now must answer at once, but the
 // engine clock is async. So the adapter caches the time and refreshes the
 // cache before each timer callback runs.
-export async function createPorts(bridge: Bridge, instanceId: string): Promise<HostPorts> {
+// The ports also carry sync(). A host awaits it before Game.start, so the
+// cached time is current and not the time the Game was built.
+export type SyncedPorts = HostPorts & { readonly sync: () => Promise<void> }
+
+export async function createPorts(bridge: Bridge, instanceId: string): Promise<SyncedPorts> {
   let cached = await bridge.clockNow()
   const refresh = async (): Promise<void> => {
     cached = await bridge.clockNow()
   }
   return {
+    sync: refresh,
     instanceId,
     storage: {
       get: async (key) => (await bridge.storeGet(key)) as Json | undefined,

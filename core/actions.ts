@@ -10,6 +10,7 @@ import { distillHandlers } from './distill'
 import { EPSILON, findContract, handWorkCash, isMachineUnlocked, machineCost, modsOf, ownedMachines } from './economy'
 import { fill, fmtMoney } from './format'
 import { OK, refuse, type Handler, type Handlers } from './handler'
+import { revealNew } from './reveal'
 import { advanceStory } from './story'
 import { researchHandlers } from './research'
 import { shopHandlers } from './shop'
@@ -109,5 +110,5 @@ export function attempt(state: GameState, content: ContentPack, action: Action):
   const verdict = check(state, content, action)
   const handler = handlerFor(action.type)
   if (!verdict.ok || !handler) return { state, verdict }
-  return { state: advanceStory(handler.run(state, content, action), content), verdict }
+  return { state: revealNew(advanceStory(handler.run(state, content, action), content), content), verdict }
 }

@@ -44,11 +44,20 @@ export type Listener = (snapshot: Snapshot) => void
 // Actions that save at once, because losing them costs the player real progress.
 const SAVE_NOW: readonly Action['type'][] = ['nameFounder', 'distill']
 
-// The log lines that state `after` added to state `before`. Both logs share
-// line objects, because the core never copies a line it keeps.
+// The log lines that state `after` added to state `before`. It matches the
+// last line of `before` by value (time and text), because a state read from
+// storage holds new line objects.
 export function newLogLines(before: GameState | null, after: GameState): readonly LogLine[] {
   const last = before?.log[before.log.length - 1]
-  const at = last === undefined ? -1 : after.log.lastIndexOf(last)
+  if (last === undefined) return after.log
+  let at = -1
+  for (let i = after.log.length - 1; i >= 0; i--) {
+    const line = after.log[i] as LogLine
+    if (line.t === last.t && line.text === last.text) {
+      at = i
+      break
+    }
+  }
   return after.log.slice(at + 1)
 }
 

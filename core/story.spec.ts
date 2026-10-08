@@ -54,3 +54,22 @@ describe('Story beats', () => {
     expect(d.story.filter((id) => id === 'first-ten')).toHaveLength(1)
   })
 })
+
+describe('Story placeholders', () => {
+  const content = {
+    ...FIXTURE,
+    story: FIXTURE.story.map((b) =>
+      b.id === 'first-agent' ? { ...b, text: '{agent} takes the next ledger.' } : b,
+    ),
+  }
+
+  test('the first-agent beat logs the agent name and no placeholder', () => {
+    const s = withState(started(), { cash: 100 })
+    const bought = apply(s, content, { type: 'buyMachine', machine: 'relay-rack' })
+    const made = apply(bought, content, { type: 'createAgent', model: 'kin-0.1', job: 'earn' })
+    expect(made.story).toContain('first-agent')
+    const text = made.log.map((l) => l.text).join('\n')
+    expect(text).toContain(`${(made.agents[0]?.name ?? '')} takes the next ledger.`)
+    expect(text).not.toContain('{')
+  })
+})

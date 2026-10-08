@@ -97,7 +97,7 @@ export function machineRows(ctx: Ctx): readonly MachineRow[] {
       cost,
       canAfford: state.cash + EPSILON >= cost,
       secondsToAfford: secondsToAfford(cost, state.cash, rates.cashPerSec),
-      isVisible: def.startsUnlocked || (unlocked && heldEnough(state, content, def.id, state.cash, cost)),
+      isVisible: def.startsUnlocked || owned > 0 || (unlocked && heldEnough(state, content, def.id, state.cash, cost)),
     }
   })
 }
@@ -122,8 +122,9 @@ export function researchRows(ctx: Ctx): readonly ResearchRow[] {
   })
 }
 
-// Ids that show now and are not in state.revealed yet. The host stores them
-// so an item stays visible after the player spends below the threshold.
+// Ids that show now and are not in state.revealed yet. The reveal phase in
+// reveal.ts stores them, so an item stays visible after the player spends
+// below the threshold.
 export function newlyRevealed(ctx: Ctx): readonly string[] {
   const shown = [...machineRows(ctx), ...researchRows(ctx)].filter((r) => r.isVisible).map((r) => r.id)
   return shown.filter((id) => !ctx.state.revealed.includes(id))
