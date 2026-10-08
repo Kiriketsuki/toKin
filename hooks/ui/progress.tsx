@@ -61,10 +61,12 @@ export function Training(ctx: Ctx) {
       {training.active === null &&
         options.map((o) => {
           const option = optionFor(ctx, `train:${o.model}`)
+          const half = optionFor(ctx, `train:${o.model}:half`)
           const time = o.secondsAtFree === null ? 'needs free compute' : `${fmtDuration(o.secondsAtFree)} on free compute`
           return (
             <Box flexDirection="row" columnGap={1} key={o.model}>
               {option ? ActionButton(ctx, option) : <Text>{o.model}</Text>}
+              {half && ActionButton(ctx, half)}
               <Text dimColor>{time}</Text>
             </Box>
           )

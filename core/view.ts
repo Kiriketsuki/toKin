@@ -84,9 +84,14 @@ function progressOptions(ctx: Ctx, view: Pick<ViewModel, 'research' | 'training'
   const research = view.research
     .filter((r) => r.isVisible && r.status === 'available')
     .map((r) => option(ctx, `research:${r.id}`, `Research ${r.name} (${fmtNum(r.cost)} RP)`, { type: 'research', research: r.id }))
-  const train = view.training.options.map((t) =>
+  // The player chooses how much compute a run reserves: all free compute, or half of it.
+  const half = Math.floor(ctx.rates.free / 2)
+  const train = view.training.options.flatMap((t) => [
     option(ctx, `train:${t.model}`, `Train ${t.model} (${fmtNum(t.cost)} kFLOP-s)`, { type: 'startTraining', model: t.model, flops: ctx.rates.free }),
-  )
+    ...(half >= 1
+      ? [option(ctx, `train:${t.model}:half`, `Train ${t.model} on half (${fmtNum(half)} kFLOP/s)`, { type: 'startTraining', model: t.model, flops: half })]
+      : []),
+  ])
   const shop = view.shop
     .filter((s) => s.cost !== null)
     .map((s) => option(ctx, `shop:${s.id}`, `${s.name} (${fmtNum(s.cost ?? 0)} Logits)`, { type: 'buyShop', item: s.id }))

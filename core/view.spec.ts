@@ -157,6 +157,11 @@ describe('training', () => {
     expect(option(s, 'train:kin-0.2')?.action).toEqual({ type: 'startTraining', model: 'kin-0.2', flops: 10 })
   })
 
+  test('lets the player reserve half of the free compute instead of all of it', () => {
+    const s = withState(started(), { research: ['training-harness'], machines: { 'relay-rack': 10 } })
+    expect(option(s, 'train:kin-0.2:half')?.action).toEqual({ type: 'startTraining', model: 'kin-0.2', flops: 5 })
+  })
+
   test('shows progress and time left for an active run', () => {
     const s = withState(started(), {
       research: ['training-harness'],
