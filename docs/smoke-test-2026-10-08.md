@@ -1,4 +1,7 @@
-# Live playtest, 2026-10-08
+# Agent-driven smoke test, 2026-10-08
+
+This is not the T10 manual playtest. T10 stays with the player, as the goal
+for Build 1 says. This record is supporting evidence only.
 
 Claude Code v2.1.294 in a tmux terminal, 150 columns. The session ran
 `claude --plugin-dir /home/kiriketsuki/dev/Personal/toKin` from a trusted parent
