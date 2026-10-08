@@ -33,13 +33,10 @@ function checkDistill(state: GameState, content: ContentPack): Verdict {
   return info.canDistill ? OK : refuse(content, 'distillLocked')
 }
 
-// The research a Distill keeps: Old Notes items, and every item that
-// unlocks Distill, so the player never has to re-learn the reset itself.
+// The research a Distill keeps: only the Old Notes items. Everything else,
+// Distillation included, resets, as the spec's Distilling scenario says.
 function survivingResearch(state: GameState, content: ContentPack): readonly string[] {
   const keep = new Set(keptResearch(state, content))
-  content.research
-    .filter((r) => r.effects.some((e) => e.kind === 'unlockDistill'))
-    .forEach((r) => keep.add(r.id))
   return state.research.filter((id) => keep.has(id))
 }
 

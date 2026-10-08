@@ -218,7 +218,7 @@ Feature: toKin Build 1
       Given Distillation is researched and lifetime tokens are high enough for 4 Logits
       When the player confirms Distill
       Then the player holds 4 Logits
-      And cash, machines, agents, research (except Distillation itself and Old Notes items), and models above kin-0.1 reset
+      And cash, machines, agents, research, and models above kin-0.1 reset
       And fired story beats and stats remain
 
     Scenario: Distill before it is unlocked

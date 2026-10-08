@@ -266,8 +266,8 @@ agent id counter and the log.
 
 After the reset, the shop applies: Warm Start sets the start machines, Old
 Notes keeps its research list, Hand-me-down keeps its model list. The
-`distillation` research item itself stays researched, as the design note
-says. `stats.distills`, `stats.logitsEarned` and `stats.bestRunSeconds`
+`distillation` research item resets with the rest, as the spec's Distilling
+scenario says, so each run researches it again. `stats.distills`, `stats.logitsEarned` and `stats.bestRunSeconds`
 update.
 
 ### Logits shop

@@ -128,7 +128,7 @@ export const ERA1: ContentPack = {
     handWorkContract: 'payroll',
     researchRate: 0.0015,
     unspentLogitBonus: 0.02,
-    distillK: 1,
+    distillK: 8,
     distillT0: 2000,
     offlineCapSeconds: 7200,
     catchUpChunkSeconds: 60,

@@ -55,9 +55,9 @@ describe('Distilling', () => {
     expect(s.agents).toEqual([])
     expect(s.training).toBeNull()
     expect(s.models).toEqual(['kin-0.1'])
-    expect(s.research).toEqual(['distillation'])
+    expect(s.research).toEqual([])
     expect(s.contractPick).toBe('payroll')
-    expect(s.revealed).toEqual(['distillation'])
+    expect(s.revealed).toEqual([])
     expect(s.lifetimeTokens).toBe(10000)
     expect(s.shop).toEqual({ 'soft-targets': 1 })
     expect(s.story).toContain('first-ten')
@@ -77,14 +77,14 @@ describe('Distilling', () => {
   test('a second Distill pays only for new tokens', () => {
     const once = distill(deep())
     expect(distillPayout(once, PACK)).toBe(0)
-    const twice = distill(withState(once, { lifetimeTokens: 40000 }))
+    const twice = distill(withState(once, { lifetimeTokens: 40000, research: ['distillation'] }))
     expect(twice.logits).toBe(6)
     expect(twice.stats.logitsEarned).toBe(6)
   })
 
   test('keeps the shortest run time', () => {
     const once = distill(deep())
-    const twice = distill(withState(once, { lifetimeTokens: 40000, runSeconds: 900 }))
+    const twice = distill(withState(once, { lifetimeTokens: 40000, runSeconds: 900, research: ['distillation'] }))
     expect(twice.stats.bestRunSeconds).toBe(321)
   })
 
@@ -102,7 +102,7 @@ describe('Distilling', () => {
 
   test('Old Notes keeps its research', () => {
     const s = distill(deep({ shop: { 'old-notes': 1 } }))
-    expect(s.research).toEqual(['distillation', 'training-harness', 'contract-broker'])
+    expect(s.research).toEqual(['training-harness', 'contract-broker'])
   })
 
   test('Warm Start gives racks at each Distill', () => {
