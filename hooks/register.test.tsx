@@ -29,6 +29,8 @@ function setup(on: On, store: Record<string, unknown> = {}) {
   })
   const opened: string[] = []
   on('session.start', async (_$, e) => ({ cwd: e.cwd }))
+  on('ui.toast', async () => ({ value: undefined }) as never)
+  on('classic.StopFailure', async () => ({}))
   on('command.register', async (_$, e) => ({ value: { command: e.name } }))
   on('ui.open', async (_$, e) => {
     opened.push(e.id)
@@ -107,4 +109,48 @@ test('the clock ticks the game and the game saves to the plugin store', async ($
   await clock.advance(31_000)
   expect(writes.filter(k => k === 'tokin.save').length).toBeGreaterThan(before)
   expect(writes).toContain('tokin.lock')
+})
+
+const SUMMARY = { role: 'user' as const, text: 'summary', toolUses: [] }
+
+async function named($: Engine) {
+  await boot($)
+  const pane = await mountPane($)
+  await pane.input({ key: 'founder-name', text: 'Ada' })
+  await pane.unmount()
+}
+
+async function countText($: Engine, text: RegExp): Promise<number> {
+  const pane = await mountPane($)
+  const found = await pane.findAll({ type: 'Text', text })
+  await pane.unmount()
+  return found.length
+}
+
+test('a real rate limit logs the supplier line once inside ten minutes', async ($, on) => {
+  const { clock } = setup(on)
+  await named($)
+  await $.classic.StopFailure({ error: 'rate_limit' })
+  await $.classic.StopFailure({ error: 'overloaded' })
+  expect(await countText($, /punch-card supplier is out of stock/)).toBe(1)
+  await clock.advance(601_000)
+  await $.classic.StopFailure({ error: 'rate_limit' })
+  expect(await countText($, /punch-card supplier is out of stock/)).toBe(2)
+})
+
+test('an error that is not a rate signal logs nothing', async ($, on) => {
+  setup(on)
+  await named($)
+  await $.classic.StopFailure({ error: 'authentication_failed' })
+  expect(await countText($, /punch-card supplier/)).toBe(0)
+})
+
+test('a compaction logs the ledger joke, a precompute does not', async ($, on) => {
+  setup(on)
+  on('session.compact', async () => ({ messages: [SUMMARY] }))
+  await named($)
+  await $.session.compact({ trigger: 'precompute', messages: [SUMMARY] })
+  expect(await countText($, /ledger was boiled down/)).toBe(0)
+  await $.session.compact({ trigger: 'manual', messages: [SUMMARY] })
+  expect(await countText($, /ledger was boiled down/)).toBe(1)
 })

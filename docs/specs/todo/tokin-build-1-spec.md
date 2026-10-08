@@ -279,7 +279,7 @@ Feature: toKin Build 1
 | T7   | Plugin wiring: `/tokin`, clock tick, autosave, save versioning, offline catch-up, ticker lock, session end | High | T5, T6 | done |
 | T7.1 | Wiring tests with `claude plugin test`: save round-trip, catch-up equals live ticks, lock | High | T7 | done |
 | T8   | Balance bot `sim/balance.ts` and tuning of the content numbers to the targets | High | T5 | done |
-| T9   | Should-haves: mirror events, half-cost reveal, time to afford | Med | T7 | pending |
+| T9   | Should-haves: mirror events, half-cost reveal, time to afford | Med | T7 | done |
 | T10  | Manual playtest in a live session, fixes, README play instructions | Med | T8, T9 | pending |
 
 ---

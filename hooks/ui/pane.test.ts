@@ -110,3 +110,30 @@ test('Distill shows a preview and acts only after the confirm step', async ($, o
   expect(rig.actions).toEqual([{ type: 'distill' }])
   await confirming.unmount()
 })
+
+// The reveal rule lives in the view model (isVisible). The pane must draw only
+// the machines the view marks visible, and must show the time to afford.
+test('a machine shows only once the view reveals it, with its time to afford', async ($, on) => {
+  const base = playingView()
+  const target = base.machines[1]!
+  const withTarget = (patch: Partial<typeof target>): ViewModel => ({
+    ...base,
+    machines: base.machines.map((m) => (m.id === target.id ? { ...m, ...patch } : m)),
+  })
+  const hidden = makeRig(on, 'ui-test-hidden', withTarget({ isVisible: false }), 100)
+  const shown = makeRig(on, 'ui-test-shown', withTarget({ isVisible: true, canAfford: false, secondsToAfford: 90 }), 100)
+  const stuck = makeRig(on, 'ui-test-stuck', withTarget({ isVisible: true, canAfford: false, secondsToAfford: null }), 100)
+
+  const a = await hidden.mount($.ui, 'terminal')
+  expect(await a.find({ key: target.id })).toBeUndefined()
+  await a.unmount()
+
+  const b = await shown.mount($.ui, 'terminal')
+  expect(await b.find({ key: target.id })).toBeDefined()
+  expect(await b.find({ type: 'Text', text: /in 1m|in 90s|in 1:30|in 1 /i })).toBeDefined()
+  await b.unmount()
+
+  const c = await stuck.mount($.ui, 'terminal')
+  expect(await c.find({ type: 'Text', text: /out of reach/ })).toBeDefined()
+  await c.unmount()
+})

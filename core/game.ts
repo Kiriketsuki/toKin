@@ -12,13 +12,15 @@
 //            refuses every action.
 
 import { attempt } from './actions'
+import { applyMirror } from './mirror'
+import type { MirrorClock } from './mirror'
 import { advance, catchUp, SLEEP_NOTICE_SECONDS } from './offline'
 import type { Cancel, HostPorts } from './ports'
 import { STORAGE_KEYS } from './ports'
 import { BACKUP_KEY, loadSave, toSave } from './save'
 import { initialState } from './state'
 import { newBeats } from './story'
-import type { Action, ContentPack, GameState, LogLine, Verdict, ViewModel } from './types'
+import type { Action, ContentPack, GameState, LogLine, MirrorKey, Verdict, ViewModel } from './types'
 import { buildView } from './view'
 import { claimLock, HEARTBEAT_MS, isHeldByOther, readLock, releaseLock, renewLock } from './lock'
 
@@ -60,6 +62,7 @@ export class Game {
   private lastPollMs = 0
   private isBusy = false
   private lastError = ''
+  private mirrorClock: MirrorClock = {}
   private readonly listeners = new Set<Listener>()
 
   constructor(
@@ -77,6 +80,17 @@ export class Game {
     this.commit(result.state)
     if (SAVE_NOW.includes(action.type)) void this.guard(() => this.save())
     return result.verdict
+  }
+
+  // The host reports a real event, such as a rate limit. The game logs one
+  // mirror line, at most once per interval for each kind. Only the ticker
+  // writes the log. The answer says whether a line was logged.
+  readonly mirror = (key: MirrorKey): boolean => {
+    if (this.role !== 'ticker' || this.state === null) return false
+    const result = applyMirror(this.state, this.content, this.mirrorClock, key, this.ports.clock.now())
+    this.mirrorClock = result.clock
+    if (result.isLogged) this.commit(result.state, true)
+    return result.isLogged
   }
 
   snapshot(): Snapshot {

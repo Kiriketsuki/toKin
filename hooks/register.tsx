@@ -56,6 +56,13 @@ async function ensureGame(bridge: Bridge): Promise<Game> {
   return created
 }
 
+// The API error kinds that mean the supplier is out of stock for a while.
+const RATE_ERRORS: readonly string[] = ['rate_limit', 'overloaded']
+
+function isRateSignal(error: string): boolean {
+  return RATE_ERRORS.includes(error)
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
@@ -75,6 +82,21 @@ export const register: Register = on => {
     await $.ui.open(openPane)
 
     return { text: 'toKin pane opened.' }
+  })
+
+  // A real rate limit or overload mirrors into the game as one log line.
+  on('classic.StopFailure', async (_$, e, next) => {
+    if (isRateSignal(e.error)) game?.mirror('rateLimit')
+
+    return next(e)
+  })
+
+  // A real compaction (not the silent precompute) mirrors as a distillation joke.
+  on('session.compact', async (_$, e, next) => {
+    const result = await next(e)
+    if (e.trigger !== 'precompute' && result.messages !== undefined) game?.mirror('compaction')
+
+    return result
   })
 
   on('session.end', async (_$, e, next) => {
