@@ -68,64 +68,69 @@ function isRateSignal(error: string): boolean {
   return RATE_ERRORS.includes(error)
 }
 
+const onSessionStart: Hook<'session.start'> = async ($, e, next) => {
+  await $.command.register({
+    name: 'tokin',
+    description: 'Open the toKin game pane, or stop it with "/tokin stop"',
+    argumentHint: 'stop',
+  })
+  const bridge = bridgeOf($)
+  const current = await ensureGame(bridge)
+  // A hot reload drops the Game but keeps $.state. When the role says a game
+  // was live, resume it. Otherwise publish the dormant snapshot, so the pane
+  // never shows a role that no Game backs.
+  const role = (await $.state.get(ROLE_REF)).value ?? 'dormant'
+  if (role === 'ticker' || role === 'viewer') await current.start()
+  await publish(bridge, current.snapshot())
+
+  return next(e)
+}
+
+const onTokin: Hook<'command.run'> = async ($, e) => {
+  const bridge = bridgeOf($)
+  const current = await ensureGame(bridge)
+  if (e.args.trim() === 'stop') {
+    await current.stop()
+    await publish(bridge, current.snapshot())
+
+    return { text: 'toKin stopped.' }
+  }
+  // The cached clock is from session start. Refresh it before the game reads the time.
+  await syncClock?.()
+  await current.start()
+  await publish(bridge, current.snapshot())
+  await $.ui.open(openPane)
+
+  return { text: 'toKin pane opened.' }
+}
+
+// A real rate limit or overload mirrors into the game as one log line.
+const onStopFailure: Hook<'classic.StopFailure'> = async (_$, e, next) => {
+  if (isRateSignal(e.error)) game?.mirror('rateLimit')
+
+  return next(e)
+}
+
+// A real compaction (not the silent precompute) mirrors as a distillation joke.
+const onCompact: Hook<'session.compact'> = async (_$, e, next) => {
+  const result = await next(e)
+  if (e.trigger !== 'precompute' && result.messages !== undefined) game?.mirror('compaction')
+
+  return result
+}
+
+const onSessionEnd: Hook<'session.end'> = async (_$, e, next) => {
+  await game?.stop()
+
+  return next(e)
+}
+
 export const register: Register = on => {
-  on('session.start', async ($, e, next) => {
-    await $.command.register({
-      name: 'tokin',
-      description: 'Open the toKin game pane, or stop it with "/tokin stop"',
-      argumentHint: 'stop',
-    })
-    const bridge = bridgeOf($)
-    const current = await ensureGame(bridge)
-    // A hot reload drops the Game but keeps $.state. When the role says a game
-    // was live, resume it. Otherwise publish the dormant snapshot, so the pane
-    // never shows a role that no Game backs.
-    const role = (await $.state.get(ROLE_REF)).value ?? 'dormant'
-    if (role === 'ticker' || role === 'viewer') await current.start()
-    await publish(bridge, current.snapshot())
-
-    return next(e)
-  })
-
-  on('command.run', { command: 'tokin' }, async ($, e) => {
-    const bridge = bridgeOf($)
-    const current = await ensureGame(bridge)
-    if (e.args.trim() === 'stop') {
-      await current.stop()
-      await publish(bridge, current.snapshot())
-
-      return { text: 'toKin stopped.' }
-    }
-    // The cached clock is from session start. Refresh it before the game reads the time.
-    await syncClock?.()
-    await current.start()
-    await publish(bridge, current.snapshot())
-    await $.ui.open(openPane)
-
-    return { text: 'toKin pane opened.' }
-  })
-
-  // A real rate limit or overload mirrors into the game as one log line.
-  on('classic.StopFailure', async (_$, e, next) => {
-    if (isRateSignal(e.error)) game?.mirror('rateLimit')
-
-    return next(e)
-  })
-
-  // A real compaction (not the silent precompute) mirrors as a distillation joke.
-  on('session.compact', async (_$, e, next) => {
-    const result = await next(e)
-    if (e.trigger !== 'precompute' && result.messages !== undefined) game?.mirror('compaction')
-
-    return result
-  })
-
-  on('session.end', async (_$, e, next) => {
-    await game?.stop()
-
-    return next(e)
-  })
-
+  on('session.start', onSessionStart)
+  on('command.run', { command: 'tokin' }, onTokin)
+  on('classic.StopFailure', onStopFailure)
+  on('session.compact', onCompact)
+  on('session.end', onSessionEnd)
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
     // Mobile has no Input element, so the founder prompt cannot draw there.
     if (e.surface === 'mobile') {
