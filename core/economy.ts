@@ -2,6 +2,7 @@
 // doubles later. The functions are pure. They read the state and the content
 // pack and never change either. The formulas follow docs/ARCHITECTURE.md.
 
+import { foldEffects, type QualityBoost } from './effects'
 import type {
   AgentState,
   ContentPack,
@@ -16,6 +17,8 @@ import type {
   ShopDef,
 } from './types'
 
+export type { QualityBoost }
+
 // Compute comparisons tolerate float noise of this size.
 export const EPSILON = 1e-9
 
@@ -26,13 +29,6 @@ export function round2(n: number): number {
 
 function product(values: readonly number[]): number {
   return values.reduce((acc, value) => acc * value, 1)
-}
-
-function ofKind<K extends ResearchEffect['kind']>(
-  effects: readonly ResearchEffect[],
-  kind: K,
-): readonly Extract<ResearchEffect, { kind: K }>[] {
-  return effects.filter((e): e is Extract<ResearchEffect, { kind: K }> => e.kind === kind)
 }
 
 // ---------------------------------------------------------------------------
@@ -58,11 +54,6 @@ export function findContract(content: ContentPack, id: string): ContractDef | un
 // ---------------------------------------------------------------------------
 // Modifiers: what research, the shop, machines and Logits do right now
 // ---------------------------------------------------------------------------
-
-export interface QualityBoost {
-  readonly value: number
-  readonly minTier: number
-}
 
 export interface Mods {
   readonly tokMult: number
@@ -107,24 +98,20 @@ function machineContextMult(state: GameState, content: ContentPack): number {
 }
 
 export function modsOf(state: GameState, content: ContentPack): Mods {
-  const effects = researchEffects(state, content)
+  const fx = foldEffects(researchEffects(state, content))
   const unspent = 1 + content.balance.unspentLogitBonus * state.logits
-  const caps = ofKind(effects, 'offlineCap').map((e) => e.seconds)
   return {
-    tokMult: product(ofKind(effects, 'tokMult').map((e) => e.value)) * shopMult(state, content.shop, 'tokMultPerLevel') * unspent,
-    contextMult:
-      product(ofKind(effects, 'contextMult').map((e) => e.value)) *
-      shopMult(state, content.shop, 'contextMultPerLevel') *
-      machineContextMult(state, content),
-    machineCostMult: product(ofKind(effects, 'machineCostMult').map((e) => e.value)),
-    trainingCostMult: product(ofKind(effects, 'trainingCostMult').map((e) => e.value)),
+    tokMult: fx.tokMult * shopMult(state, content.shop, 'tokMultPerLevel') * unspent,
+    contextMult: fx.contextMult * shopMult(state, content.shop, 'contextMultPerLevel') * machineContextMult(state, content),
+    machineCostMult: fx.machineCostMult,
+    trainingCostMult: fx.trainingCostMult,
     trainSpeedMult: shopMult(state, content.shop, 'trainSpeedPerLevel'),
-    qualityBoosts: ofKind(effects, 'qualityMult').map((e) => ({ value: e.value, minTier: e.minTier })),
-    hasBroker: ofKind(effects, 'autoContract').length > 0,
-    canDistill: ofKind(effects, 'unlockDistill').length > 0,
-    offlineCapSeconds: Math.max(content.balance.offlineCapSeconds, ...caps),
-    unlockedMachines: new Set(ofKind(effects, 'unlockMachine').map((e) => e.machine)),
-    unlockedJobs: new Set<Job>(['earn', 'research', ...ofKind(effects, 'unlockJob').map((e) => e.job)]),
+    qualityBoosts: fx.qualityBoosts,
+    hasBroker: fx.hasBroker,
+    canDistill: fx.canDistill,
+    offlineCapSeconds: Math.max(content.balance.offlineCapSeconds, fx.offlineCapSeconds),
+    unlockedMachines: fx.unlockedMachines,
+    unlockedJobs: new Set<Job>(['earn', 'research', ...fx.unlockedJobs]),
   }
 }
 

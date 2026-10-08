@@ -10,7 +10,9 @@ import { EPSILON, findContract, handWorkCash, isMachineUnlocked, machineCost, mo
 import { fill, fmtMoney } from './format'
 import { OK, refuse, type Handler, type Handlers } from './handler'
 import { advanceStory } from './story'
+import { researchHandlers } from './research'
 import { withLog } from './state'
+import { trainingHandlers } from './training'
 import type { Action, ActionType, ContentPack, GameState, Verdict } from './types'
 
 const coreHandlers: Handlers = {
@@ -71,7 +73,7 @@ const coreHandlers: Handlers = {
 }
 
 // Later modules merge their handlers here.
-export const HANDLERS: Handlers = { ...coreHandlers }
+export const HANDLERS: Handlers = { ...coreHandlers, ...trainingHandlers, ...researchHandlers }
 
 function handlerFor(type: ActionType): Handler | undefined {
   return HANDLERS[type] as Handler | undefined

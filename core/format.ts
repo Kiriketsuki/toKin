@@ -50,3 +50,23 @@ export function fill(template: string, vars: Readonly<Record<string, string | nu
     return value === undefined ? whole : String(value)
   })
 }
+
+// A money amount with the currency sign: $5.00, $1.5k.
+export function fmtDollars(n: number): string {
+  return `${n < 0 ? '-' : ''}$${fmtMoney(Math.abs(n))}`
+}
+
+// A rate per second: 1.5k/s.
+export function fmtRate(n: number): string {
+  return `${fmtNum(n)}/s`
+}
+
+// A compute amount with its unit: 12 kFLOP/s.
+export function fmtCompute(n: number, unit: string): string {
+  return `${fmtNum(n)} ${unit}`
+}
+
+// A fraction as a percent: 0.1 becomes 10%.
+export function fmtPercent(fraction: number): string {
+  return `${trim((fraction * 100).toFixed(1))}%`
+}
