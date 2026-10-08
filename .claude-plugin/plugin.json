@@ -1,0 +1,9 @@
+{
+  "name": "tokin",
+  "version": "0.1.0",
+  "description": "An incremental game: grow a 1950s garage AI company into a stable of kin models, then distill and start again",
+  "author": {
+    "name": "Kiriketsuki"
+  },
+  "types": "./types/index.d.ts"
+}

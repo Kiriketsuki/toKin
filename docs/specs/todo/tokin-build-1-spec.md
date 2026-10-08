@@ -41,7 +41,8 @@
 - **Logits shop**: six items (Warm Start, Soft Targets, Long Memory, Curriculum, Hand-me-down, Old Notes). Each unspent Logit gives +2% tok/s.
 - **Story**: 15 to 25 terse, lowercase, second-person beats. Each fires once on an economy threshold. Each shows in the pane log and as a toast.
 - **Save and offline**: a versioned save in `$.store`, autosaved every 30 s and on session end. Offline catch-up on load, capped at 2 h (8 h after Night Shift), followed by a summary line.
-- **Single ticker**: only one Claude Code session ticks the game. Other sessions show the state read-only.
+- **Opt-in per session**: the game stays dormant in a session (no clock, no lock, no store writes) until the player runs `/tokin` there. Closing the pane hides the game but keeps it running. `/tokin stop` or session end stops it and releases the lock.
+- **Single ticker**: only one Claude Code session ticks the game. The first session to run `/tokin` holds the lock. Other sessions that run `/tokin` show the state read-only.
 - **Pane**: `/tokin` opens a dedicated pane with header (cash, compute used and wasted, tok/s, RP, Logits, year), agents table, contracts, machines, research, training, and log.
 
 ### Should-Have
@@ -81,8 +82,8 @@
 **Engine contract**: `step(state, dtSeconds) -> state` and `apply(state, action) -> state` are pure and immutable. Live ticks and offline catch-up both call `step`. All formulas live in `economy.ts`.
 
 **Plugin contract**:
-- `session.start`: registers `/tokin`, loads the save, runs catch-up, and starts `$.clock.every(1000)` when the session holds the ticker lock.
-- `command.run` `tokin`: `$.ui.open({ id: 'tokin', title: 'toKin', focus: true })`.
+- `session.start`: registers `/tokin` only. No clock, no lock, no store reads or writes.
+- `command.run` `tokin`: on first use in the session, loads the save, runs catch-up, takes the ticker lock if free, and starts `$.clock.every(1000)` when it holds the lock. Then opens the pane: `$.ui.open({ id: 'tokin', title: 'toKin', focus: true })`. `/tokin stop` saves, stops the clock, and releases the lock.
 - `ui.render` `{ component: 'Pane', requestId: 'tokin' }`: draws the views from the state atom.
 - `ui.press`: dispatches actions to `apply`.
 - `turn.step`: detects mirror events only.
@@ -242,7 +243,17 @@ Feature: toKin Build 1
         | 5h   | 2h        | base cap              |
         | 5h   | 5h        | Night Shift researched |
 
-  Rule: Only one session ticks
+  Rule: Only sessions that opt in run the game, and only one ticks
+
+    Scenario: A session that never runs /tokin stays dormant
+      Given a new Claude Code session with the plugin loaded
+      When the player works without running /tokin
+      Then the plugin starts no clock, takes no lock, and writes nothing to the store
+
+    Scenario: Stopping the game in a session
+      Given session A runs the game and holds the ticker lock
+      When the player runs /tokin stop in session A
+      Then session A saves, stops its clock, and releases the lock
 
     Scenario: A second session opens toKin
       Given session A holds the ticker lock
@@ -257,7 +268,7 @@ Feature: toKin Build 1
 
 | ID   | Task | Priority | Dependencies | Status  |
 |:-----|:-----|:---------|:-------------|:--------|
-| T1   | Scaffold the plugin repo: manifest, hooks.json, types contract, tsconfig, README, .gitignore | High | None | pending |
+| T1   | Scaffold the plugin repo: manifest, hooks.json, types contract, tsconfig, README, .gitignore | High | None | done |
 | T2   | Engine core: state, seeded RNG, economy formulas, `step`, `apply` for work, buy, agents, jobs, contracts | High | T1 | pending |
 | T2.1 | Engine unit tests: costs, production, waste, context gating, determinism | High | T2 | pending |
 | T3   | Content: `content/era1.ts` with machines, models, contracts, research, shop, story beats, agent name pool | High | T2 | pending |
