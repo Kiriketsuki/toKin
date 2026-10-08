@@ -13,7 +13,9 @@ import {
   type Mods,
   type Rates,
 } from './economy'
+import { distillPayout } from './distill'
 import { fill, fmtNum } from './format'
+import { shopCost, shopMaxLevel } from './shop'
 import type {
   AgentOutput,
   AgentRow,
@@ -25,7 +27,6 @@ import type {
   MachineRow,
   ModelRow,
   ResearchRow,
-  ShopDef,
   ShopRow,
   TrainingOption,
   TrainingView,
@@ -243,20 +244,12 @@ export function trainingView(ctx: Ctx): TrainingView {
 // Shop and Distill
 // ---------------------------------------------------------------------------
 
-// The Logits price of the next level, or null at the max level.
-export function shopCost(def: ShopDef, level: number): number | null {
-  const limit = def.cost.kind === 'table' ? def.cost.values.length : Infinity
-  if (level >= Math.min(limit, def.maxLevel ?? Infinity)) return null
-  return def.cost.kind === 'table' ? (def.cost.values[level] ?? null) : Math.ceil(def.cost.base * def.cost.ratio ** level)
-}
-
 export function shopRows(ctx: Ctx): readonly ShopRow[] {
   const { state, content } = ctx
   return content.shop.map((def) => {
     const level = state.shop[def.id] ?? 0
     const cost = shopCost(def, level)
-    const limit = def.cost.kind === 'table' ? def.cost.values.length : null
-    const maxLevel = def.maxLevel === null ? limit : limit === null ? def.maxLevel : Math.min(limit, def.maxLevel)
+    const maxLevel = shopMaxLevel(def)
     return {
       id: def.id,
       name: def.name,
@@ -269,15 +262,10 @@ export function shopRows(ctx: Ctx): readonly ShopRow[] {
   })
 }
 
-// Logits a Distill pays now: the formula total minus what earlier Distills paid.
-export function distillPayout(state: GameState, content: ContentPack): number {
-  const b = content.balance
-  const total = Math.floor(b.distillK * Math.sqrt(state.lifetimeTokens / b.distillT0))
-  return Math.max(0, total - state.stats.logitsEarned)
-}
-
 const RESETS = ['cash', 'RP', 'machines', 'agents', 'training', 'research', 'models above the start models', 'contract pick']
 const KEEPS = ['Logits', 'shop levels', 'story beats', 'lifetime tokens', 'stats', 'the founder']
+
+export { distillPayout, shopCost }
 
 export function distillPreview(ctx: Ctx): DistillPreview | null {
   if (!ctx.mods.canDistill) return null

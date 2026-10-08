@@ -6,11 +6,13 @@
 // add their handlers to HANDLERS when their modules land.
 
 import { agentHandlers } from './agents'
+import { distillHandlers } from './distill'
 import { EPSILON, findContract, handWorkCash, isMachineUnlocked, machineCost, modsOf, ownedMachines } from './economy'
 import { fill, fmtMoney } from './format'
 import { OK, refuse, type Handler, type Handlers } from './handler'
 import { advanceStory } from './story'
 import { researchHandlers } from './research'
+import { shopHandlers } from './shop'
 import { withLog } from './state'
 import { trainingHandlers } from './training'
 import type { Action, ActionType, ContentPack, GameState, Verdict } from './types'
@@ -73,7 +75,13 @@ const coreHandlers: Handlers = {
 }
 
 // Later modules merge their handlers here.
-export const HANDLERS: Handlers = { ...coreHandlers, ...trainingHandlers, ...researchHandlers }
+export const HANDLERS: Handlers = {
+  ...coreHandlers,
+  ...trainingHandlers,
+  ...researchHandlers,
+  ...distillHandlers,
+  ...shopHandlers,
+}
 
 function handlerFor(type: ActionType): Handler | undefined {
   return HANDLERS[type] as Handler | undefined
