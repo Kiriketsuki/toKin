@@ -276,9 +276,9 @@ Feature: toKin Build 1
 | VM   | View model: `buildView` in core with rows, affordability and action refusal reasons | High | T4 | done |
 | T5   | Distill, Logits shop, unspent bonus, reset rules, with tests | High | T4 | done |
 | T6   | Pane UI: header, agents, contracts, machines, research, training, log, Distill confirm. Check pane key input (Open Question 1) | High | T2 | done |
-| T7   | Plugin wiring: `/tokin`, clock tick, autosave, save versioning, offline catch-up, ticker lock, session end | High | T5, T6 | pending |
-| T7.1 | Wiring tests with `claude plugin test`: save round-trip, catch-up equals live ticks, lock | High | T7 | pending |
-| T8   | Balance bot `sim/balance.ts` and tuning of the content numbers to the targets | High | T5 | pending |
+| T7   | Plugin wiring: `/tokin`, clock tick, autosave, save versioning, offline catch-up, ticker lock, session end | High | T5, T6 | done |
+| T7.1 | Wiring tests with `claude plugin test`: save round-trip, catch-up equals live ticks, lock | High | T7 | done |
+| T8   | Balance bot `sim/balance.ts` and tuning of the content numbers to the targets | High | T5 | done |
 | T9   | Should-haves: mirror events, half-cost reveal, time to afford | Med | T7 | pending |
 | T10  | Manual playtest in a live session, fixes, README play instructions | Med | T8, T9 | pending |
 

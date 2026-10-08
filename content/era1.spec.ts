@@ -48,12 +48,12 @@ describe('era1 tables', () => {
     }
   })
 
-  test('match the spec numbers', () => {
+  test('match the tuned numbers', () => {
     expect(ERA1.machines.map((m) => [m.baseCost, m.ratio, m.flops])).toEqual([
       [25, 1.13, 1], [400, 1.14, 12], [6000, 1.15, 100], [90000, 1.15, 1500],
     ])
     expect(ERA1.models.map((m) => [m.footprint, m.tokPerSec, m.quality, m.context])).toEqual([
-      [1, 2, 1.0, 64], [4, 6, 1.6, 256], [20, 20, 2.8, 1024], [120, 72, 5.0, 4096],
+      [1, 8, 1.0, 64], [4, 24, 1.6, 256], [20, 80, 2.8, 1024], [120, 288, 5.0, 4096],
     ])
     expect(ERA1.contracts.map((c) => [c.minContext, c.payPerToken])).toEqual([
       [32, 0.1], [128, 0.15], [512, 0.22], [2048, 0.35],

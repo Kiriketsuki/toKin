@@ -1,6 +1,6 @@
 // The Era 1 content pack: a 1950s garage, four machines, four kin models.
 // Plain JSON-serialisable data typed by core/types.ts. It holds no function.
-// The numbers are starting points that the balance bot in sim/ tunes.
+// The balance bot in sim/ tuned the numbers. docs/balance.md lists what changed and why.
 
 import type { ContentPack, ContractDef, MachineDef, ModelDef, ShopDef } from '../core/types'
 import { ERA1_NAMES } from './era1-names'
@@ -51,10 +51,10 @@ const MACHINES: readonly MachineDef[] = [
 ]
 
 const MODELS: readonly ModelDef[] = [
-  { id: 'kin-0.1', name: 'kin-0.1', tier: 1, footprint: 1, tokPerSec: 2, quality: 1.0, context: 64, acquire: { kind: 'start' } },
-  { id: 'kin-0.2', name: 'kin-0.2', tier: 2, footprint: 4, tokPerSec: 6, quality: 1.6, context: 256, acquire: { kind: 'train', cost: 2000 } },
-  { id: 'kin-0.3', name: 'kin-0.3', tier: 3, footprint: 20, tokPerSec: 20, quality: 2.8, context: 1024, acquire: { kind: 'train', cost: 60000 } },
-  { id: 'kin-0.4', name: 'kin-0.4', tier: 4, footprint: 120, tokPerSec: 72, quality: 5.0, context: 4096, acquire: { kind: 'train', cost: 2400000 } },
+  { id: 'kin-0.1', name: 'kin-0.1', tier: 1, footprint: 1, tokPerSec: 8, quality: 1.0, context: 64, acquire: { kind: 'start' } },
+  { id: 'kin-0.2', name: 'kin-0.2', tier: 2, footprint: 4, tokPerSec: 24, quality: 1.6, context: 256, acquire: { kind: 'train', cost: 1200 } },
+  { id: 'kin-0.3', name: 'kin-0.3', tier: 3, footprint: 20, tokPerSec: 80, quality: 2.8, context: 1024, acquire: { kind: 'train', cost: 170000 } },
+  { id: 'kin-0.4', name: 'kin-0.4', tier: 4, footprint: 120, tokPerSec: 288, quality: 5.0, context: 4096, acquire: { kind: 'train', cost: 2400000 } },
 ]
 
 const CONTRACTS: readonly ContractDef[] = [
@@ -126,10 +126,10 @@ export const ERA1: ContentPack = {
     startCash: 0,
     handWorkTokens: 5,
     handWorkContract: 'payroll',
-    researchRate: 0.01,
+    researchRate: 0.0015,
     unspentLogitBonus: 0.02,
     distillK: 1,
-    distillT0: 50000,
+    distillT0: 2000,
     offlineCapSeconds: 7200,
     catchUpChunkSeconds: 60,
     logLimit: 100,

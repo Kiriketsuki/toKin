@@ -7,10 +7,10 @@
     "startCash": 0,
     "handWorkTokens": 5,
     "handWorkContract": "payroll",
-    "researchRate": 0.01,
+    "researchRate": 0.0015,
     "unspentLogitBonus": 0.02,
     "distillK": 1,
-    "distillT0": 50000,
+    "distillT0": 2000,
     "offlineCapSeconds": 7200,
     "catchUpChunkSeconds": 60,
     "logLimit": 100,
@@ -92,7 +92,7 @@
       "name": "kin-0.1",
       "tier": 1,
       "footprint": 1,
-      "tokPerSec": 2,
+      "tokPerSec": 8,
       "quality": 1,
       "context": 64,
       "acquire": {
@@ -104,12 +104,12 @@
       "name": "kin-0.2",
       "tier": 2,
       "footprint": 4,
-      "tokPerSec": 6,
+      "tokPerSec": 24,
       "quality": 1.6,
       "context": 256,
       "acquire": {
         "kind": "train",
-        "cost": 2000
+        "cost": 1200
       }
     },
     {
@@ -117,12 +117,12 @@
       "name": "kin-0.3",
       "tier": 3,
       "footprint": 20,
-      "tokPerSec": 20,
+      "tokPerSec": 80,
       "quality": 2.8,
       "context": 1024,
       "acquire": {
         "kind": "train",
-        "cost": 60000
+        "cost": 170000
       }
     },
     {
@@ -130,7 +130,7 @@
       "name": "kin-0.4",
       "tier": 4,
       "footprint": 120,
-      "tokPerSec": 72,
+      "tokPerSec": 288,
       "quality": 5,
       "context": 4096,
       "acquire": {
