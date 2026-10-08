@@ -269,9 +269,9 @@ Feature: toKin Build 1
 | ID   | Task | Priority | Dependencies | Status  |
 |:-----|:-----|:---------|:-------------|:--------|
 | T1   | Scaffold the plugin repo: manifest, hooks.json, types contract, tsconfig, README, .gitignore | High | None | done |
-| T2   | Engine core: state, seeded RNG, economy formulas, `step`, `apply` for work, buy, agents, jobs, contracts | High | T1 | pending |
-| T2.1 | Engine unit tests: costs, production, waste, context gating, determinism | High | T2 | pending |
-| T3   | Content: `content/era1.ts` with machines, models, contracts, research, shop, story beats, agent name pool | High | T2 | pending |
+| T2   | Engine core: state, seeded RNG, economy formulas, `step`, `apply` for work, buy, agents, jobs, contracts | High | T1 | done |
+| T2.1 | Engine unit tests: costs, production, waste, context gating, determinism | High | T2 | done |
+| T3   | Content: `content/era1.ts` with machines, models, contracts, research, shop, story beats, agent name pool | High | T2 | done |
 | T4   | Training and research systems in the engine, with tests | High | T2, T3 | pending |
 | T5   | Distill, Logits shop, unspent bonus, reset rules, with tests | High | T4 | pending |
 | T6   | Pane UI: header, agents, contracts, machines, research, training, log, Distill confirm. Check pane key input (Open Question 1) | High | T2 | pending |

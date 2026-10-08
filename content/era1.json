@@ -1,0 +1,829 @@
+{
+  "id": "era1",
+  "name": "Era 1: The Garage",
+  "computeUnit": "kFLOP/s",
+  "balance": {
+    "startYear": 1952,
+    "startCash": 0,
+    "handWorkTokens": 5,
+    "handWorkContract": "payroll",
+    "researchRate": 0.01,
+    "unspentLogitBonus": 0.02,
+    "distillK": 1,
+    "distillT0": 50000,
+    "offlineCapSeconds": 7200,
+    "catchUpChunkSeconds": 60,
+    "logLimit": 100,
+    "revealFraction": 0.5
+  },
+  "text": {
+    "offlineReturn": "you slept. it did not.",
+    "offlineSummary": "{seconds} seconds passed. it made {tokens} tokens and earned {cash}.",
+    "founderNamed": "{name}. {year}. the garage door sticks.",
+    "needsFounder": "name the founder first.",
+    "notEnoughCash": "not enough cash: needs {need}",
+    "notEnoughRp": "not enough research: needs {need} rp",
+    "notEnoughLogits": "not enough logits: needs {need}",
+    "notEnoughCompute": "not enough free compute: needs {need} kFLOP/s",
+    "locked": "{name} is not available yet.",
+    "unknownId": "nothing here is called {id}.",
+    "contextTooShort": "its context is too short: needs {need}",
+    "trainingBusy": "a training run is already going.",
+    "alreadyDone": "{name} is already done.",
+    "maxLevel": "{name} cannot go higher.",
+    "distillLocked": "you do not know how to distill yet.",
+    "distilled": "{logits} logits kept. everything else is gone."
+  },
+  "mirror": {
+    "rateLimit": "the punch-card supplier is out of stock. come back later.",
+    "compaction": "the ledger was boiled down. the sums survived. the margin notes did not."
+  },
+  "machines": [
+    {
+      "id": "relay-rack",
+      "name": "Relay Rack",
+      "flavour": "secondhand, from a telephone exchange. it still smells of cigarettes.",
+      "baseCost": 25,
+      "ratio": 1.13,
+      "flops": 1,
+      "startsUnlocked": true,
+      "perks": []
+    },
+    {
+      "id": "valve-bank",
+      "name": "Thermionic Tensor Valve bank",
+      "flavour": "warm to the touch. then warm to stand near. then a fire risk.",
+      "baseCost": 400,
+      "ratio": 1.14,
+      "flops": 12,
+      "startsUnlocked": false,
+      "perks": []
+    },
+    {
+      "id": "drum-cabinet",
+      "name": "Drum Memory Cabinet",
+      "flavour": "a spinning cylinder that remembers. it never stops spinning.",
+      "baseCost": 6000,
+      "ratio": 1.15,
+      "flops": 100,
+      "startsUnlocked": false,
+      "perks": [
+        {
+          "kind": "contextPerUnit",
+          "value": 0.1,
+          "maxUnits": 5
+        }
+      ]
+    },
+    {
+      "id": "core-lattice",
+      "name": "Core Lattice",
+      "flavour": "a woven mesh of magnets. the whole street feels it switch on.",
+      "baseCost": 90000,
+      "ratio": 1.15,
+      "flops": 1500,
+      "startsUnlocked": false,
+      "perks": []
+    }
+  ],
+  "models": [
+    {
+      "id": "kin-0.1",
+      "name": "kin-0.1",
+      "tier": 1,
+      "footprint": 1,
+      "tokPerSec": 2,
+      "quality": 1,
+      "context": 64,
+      "acquire": {
+        "kind": "start"
+      }
+    },
+    {
+      "id": "kin-0.2",
+      "name": "kin-0.2",
+      "tier": 2,
+      "footprint": 4,
+      "tokPerSec": 6,
+      "quality": 1.6,
+      "context": 256,
+      "acquire": {
+        "kind": "train",
+        "cost": 2000
+      }
+    },
+    {
+      "id": "kin-0.3",
+      "name": "kin-0.3",
+      "tier": 3,
+      "footprint": 20,
+      "tokPerSec": 20,
+      "quality": 2.8,
+      "context": 1024,
+      "acquire": {
+        "kind": "train",
+        "cost": 60000
+      }
+    },
+    {
+      "id": "kin-0.4",
+      "name": "kin-0.4",
+      "tier": 4,
+      "footprint": 120,
+      "tokPerSec": 72,
+      "quality": 5,
+      "context": 4096,
+      "acquire": {
+        "kind": "train",
+        "cost": 2400000
+      }
+    }
+  ],
+  "contracts": [
+    {
+      "id": "payroll",
+      "name": "Payroll tabulation",
+      "minContext": 32,
+      "payPerToken": 0.1
+    },
+    {
+      "id": "ballistics",
+      "name": "Ballistics tables",
+      "minContext": 128,
+      "payPerToken": 0.15
+    },
+    {
+      "id": "census",
+      "name": "Census punching",
+      "minContext": 512,
+      "payPerToken": 0.22
+    },
+    {
+      "id": "actuarial",
+      "name": "Actuarial tables",
+      "minContext": 2048,
+      "payPerToken": 0.35
+    }
+  ],
+  "research": [
+    {
+      "id": "valve-logic",
+      "name": "Valve Logic",
+      "description": "Unlocks the Tensor Valve bank.",
+      "flavour": "a glass tube that thinks in ones and zeros. it is also a heater.",
+      "cost": 10,
+      "requires": [],
+      "effects": [
+        {
+          "kind": "unlockMachine",
+          "machine": "valve-bank"
+        }
+      ]
+    },
+    {
+      "id": "batching",
+      "name": "Batching",
+      "description": "+25% tok/s for all models.",
+      "flavour": "ten ledgers at once is cheaper than ten ledgers in a row.",
+      "cost": 25,
+      "requires": [],
+      "effects": [
+        {
+          "kind": "tokMult",
+          "value": 1.25
+        }
+      ]
+    },
+    {
+      "id": "training-harness",
+      "name": "Training Harness",
+      "description": "Unlocks the Train job.",
+      "flavour": "straps, clamps and a great deal of hope.",
+      "cost": 30,
+      "requires": [
+        {
+          "kind": "machine",
+          "machine": "relay-rack",
+          "gte": 2
+        }
+      ],
+      "effects": [
+        {
+          "kind": "unlockJob",
+          "job": "train"
+        }
+      ]
+    },
+    {
+      "id": "punch-card-context",
+      "name": "Punch-card Context",
+      "description": "+50% context for all models.",
+      "flavour": "a longer stack of cards. the supplier is delighted.",
+      "cost": 40,
+      "requires": [
+        {
+          "kind": "research",
+          "research": "batching"
+        }
+      ],
+      "effects": [
+        {
+          "kind": "contextMult",
+          "value": 1.5
+        }
+      ]
+    },
+    {
+      "id": "contract-broker",
+      "name": "Contract Broker",
+      "description": "Earn agents pick the best contract they qualify for.",
+      "flavour": "a retired clerk who knows who pays on time.",
+      "cost": 60,
+      "requires": [
+        {
+          "kind": "research",
+          "research": "punch-card-context"
+        }
+      ],
+      "effects": [
+        {
+          "kind": "autoContract"
+        }
+      ]
+    },
+    {
+      "id": "rotating-storage",
+      "name": "Rotating Storage",
+      "description": "Unlocks the Drum Memory Cabinet.",
+      "flavour": "memory you can hear. it sounds like a washing machine full of coins.",
+      "cost": 120,
+      "requires": [
+        {
+          "kind": "research",
+          "research": "valve-logic"
+        },
+        {
+          "kind": "machine",
+          "machine": "valve-bank",
+          "gte": 1
+        }
+      ],
+      "effects": [
+        {
+          "kind": "unlockMachine",
+          "machine": "drum-cabinet"
+        }
+      ]
+    },
+    {
+      "id": "tube-binning",
+      "name": "Vacuum Tube Binning",
+      "description": "Machines cost 15% less.",
+      "flavour": "good tubes to the front. what happens to the rest is not your department.",
+      "cost": 200,
+      "requires": [
+        {
+          "kind": "machine",
+          "machine": "valve-bank",
+          "gte": 2
+        }
+      ],
+      "effects": [
+        {
+          "kind": "machineCostMult",
+          "value": 0.85
+        }
+      ]
+    },
+    {
+      "id": "night-shift",
+      "name": "Night Shift",
+      "description": "Offline cap rises from 2 h to 8 h.",
+      "flavour": "it works while you sleep. you tell yourself that is fine.",
+      "cost": 300,
+      "requires": [
+        {
+          "kind": "stat",
+          "stat": "lifetimeTokens",
+          "gte": 5000
+        }
+      ],
+      "effects": [
+        {
+          "kind": "offlineCap",
+          "seconds": 28800
+        }
+      ]
+    },
+    {
+      "id": "attention-prototype",
+      "name": "Attention Prototype",
+      "description": "x1.5 quality for kin-0.3 and above.",
+      "flavour": "a trick of weighting. every card learns which other cards matter.",
+      "cost": 800,
+      "requires": [
+        {
+          "kind": "model",
+          "model": "kin-0.2"
+        }
+      ],
+      "effects": [
+        {
+          "kind": "qualityMult",
+          "value": 1.5,
+          "minTier": 3
+        }
+      ]
+    },
+    {
+      "id": "magnetic-cores",
+      "name": "Magnetic Cores",
+      "description": "Unlocks the Core Lattice.",
+      "flavour": "tiny rings of iron, strung by hand. each one holds a single bit.",
+      "cost": 1500,
+      "requires": [
+        {
+          "kind": "machine",
+          "machine": "drum-cabinet",
+          "gte": 1
+        }
+      ],
+      "effects": [
+        {
+          "kind": "unlockMachine",
+          "machine": "core-lattice"
+        }
+      ]
+    },
+    {
+      "id": "gradient-checkpointing",
+      "name": "Gradient Checkpointing",
+      "description": "Training needs 30% less compute time.",
+      "flavour": "it saves its place so it can stop and start. you wish you could.",
+      "cost": 2500,
+      "requires": [
+        {
+          "kind": "research",
+          "research": "training-harness"
+        },
+        {
+          "kind": "model",
+          "model": "kin-0.2"
+        }
+      ],
+      "effects": [
+        {
+          "kind": "trainingCostMult",
+          "value": 0.7
+        }
+      ]
+    },
+    {
+      "id": "distillation",
+      "name": "Distillation",
+      "description": "Unlocks Distill. Needs kin-0.3.",
+      "flavour": "boil it down. keep the part that matters.",
+      "cost": 5000,
+      "requires": [
+        {
+          "kind": "model",
+          "model": "kin-0.3"
+        }
+      ],
+      "effects": [
+        {
+          "kind": "unlockDistill"
+        }
+      ]
+    }
+  ],
+  "shop": [
+    {
+      "id": "warm-start",
+      "name": "Warm Start",
+      "description": "Start each run with 1, 2 or 3 Relay Racks.",
+      "maxLevel": 3,
+      "cost": {
+        "kind": "table",
+        "values": [
+          1,
+          3,
+          9
+        ]
+      },
+      "effect": {
+        "kind": "startMachines",
+        "machine": "relay-rack",
+        "perLevel": [
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "soft-targets",
+      "name": "Soft Targets",
+      "description": "+10% tok/s per level. No limit.",
+      "maxLevel": null,
+      "cost": {
+        "kind": "geometric",
+        "base": 2,
+        "ratio": 1.6
+      },
+      "effect": {
+        "kind": "tokMultPerLevel",
+        "value": 0.1
+      }
+    },
+    {
+      "id": "long-memory",
+      "name": "Long Memory",
+      "description": "+25% context per level. Max 4.",
+      "maxLevel": 4,
+      "cost": {
+        "kind": "geometric",
+        "base": 3,
+        "ratio": 2
+      },
+      "effect": {
+        "kind": "contextMultPerLevel",
+        "value": 0.25
+      }
+    },
+    {
+      "id": "curriculum",
+      "name": "Curriculum",
+      "description": "Training runs 20% faster per level. Max 5.",
+      "maxLevel": 5,
+      "cost": {
+        "kind": "geometric",
+        "base": 4,
+        "ratio": 2
+      },
+      "effect": {
+        "kind": "trainSpeedPerLevel",
+        "value": 0.2
+      }
+    },
+    {
+      "id": "hand-me-down",
+      "name": "Hand-me-down",
+      "description": "Keep kin-0.2, then kin-0.3, after Distill.",
+      "maxLevel": 2,
+      "cost": {
+        "kind": "table",
+        "values": [
+          5,
+          20
+        ]
+      },
+      "effect": {
+        "kind": "keepModels",
+        "perLevel": [
+          [
+            "kin-0.2"
+          ],
+          [
+            "kin-0.2",
+            "kin-0.3"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "old-notes",
+      "name": "Old Notes",
+      "description": "Keep Training Harness and Contract Broker after Distill.",
+      "maxLevel": 1,
+      "cost": {
+        "kind": "table",
+        "values": [
+          3
+        ]
+      },
+      "effect": {
+        "kind": "keepResearch",
+        "research": [
+          "training-harness",
+          "contract-broker"
+        ]
+      }
+    }
+  ],
+  "story": [
+    {
+      "id": "cold-room",
+      "text": "the room is cold. the payroll ledger is due friday.",
+      "trigger": {
+        "kind": "stat",
+        "stat": "cash",
+        "gte": 0
+      }
+    },
+    {
+      "id": "numbers-add-up",
+      "text": "the numbers add up. they always do, eventually.",
+      "trigger": {
+        "kind": "stat",
+        "stat": "workPresses",
+        "gte": 10
+      }
+    },
+    {
+      "id": "bank-manager",
+      "text": "the bank manager calls you sir. he has not read the ledger.",
+      "trigger": {
+        "kind": "stat",
+        "stat": "cash",
+        "gte": 50
+      }
+    },
+    {
+      "id": "relay-rack",
+      "text": "a relay rack, secondhand. it clicks like rain on tin.",
+      "trigger": {
+        "kind": "machine",
+        "machine": "relay-rack",
+        "gte": 1
+      }
+    },
+    {
+      "id": "first-agent",
+      "text": "{agent} takes the next ledger. it does not ask for lunch.",
+      "trigger": {
+        "kind": "agents",
+        "gte": 1
+      }
+    },
+    {
+      "id": "halloran-payroll",
+      "text": "it finished mrs. halloran's payroll. that was your job on tuesdays.",
+      "trigger": {
+        "kind": "all",
+        "of": [
+          {
+            "kind": "agents",
+            "gte": 1
+          },
+          {
+            "kind": "stat",
+            "stat": "lifetimeTokens",
+            "gte": 300
+          }
+        ]
+      }
+    },
+    {
+      "id": "electronic-brain",
+      "text": "a man in a hat calls it an electronic brain. the paper prints it twice.",
+      "trigger": {
+        "kind": "stat",
+        "stat": "tokPerSec",
+        "gte": 10
+      }
+    },
+    {
+      "id": "valves-glow",
+      "text": "the valves glow orange. the garage is warm for the first time in years.",
+      "trigger": {
+        "kind": "machine",
+        "machine": "valve-bank",
+        "gte": 1
+      },
+      "year": 1953
+    },
+    {
+      "id": "cooling-bucket",
+      "text": "the cooling bucket needs refilling twice a day now.",
+      "trigger": {
+        "kind": "machine",
+        "machine": "valve-bank",
+        "gte": 3
+      }
+    },
+    {
+      "id": "second-one",
+      "text": "the second one is better. you are not sure how.",
+      "trigger": {
+        "kind": "model",
+        "model": "kin-0.2"
+      },
+      "year": 1954
+    },
+    {
+      "id": "reads-your-notes",
+      "text": "it reads your notes and writes better ones. you keep the better ones.",
+      "trigger": {
+        "kind": "agents",
+        "job": "research",
+        "gte": 1
+      }
+    },
+    {
+      "id": "training-harness",
+      "text": "the harness hums. you hold your breath out of habit.",
+      "trigger": {
+        "kind": "research",
+        "research": "training-harness"
+      }
+    },
+    {
+      "id": "picks-the-paying-ones",
+      "text": "it reads the contracts first. it picks the ones that pay. you did not teach it that.",
+      "trigger": {
+        "kind": "research",
+        "research": "contract-broker"
+      }
+    },
+    {
+      "id": "drum-all-night",
+      "text": "the drum spins all night. so does the electric meter.",
+      "trigger": {
+        "kind": "machine",
+        "machine": "drum-cabinet",
+        "gte": 1
+      },
+      "year": 1956
+    },
+    {
+      "id": "tube-drawer",
+      "text": "you bin the tubes by hand. the bad ones go in a drawer. the drawer is filling.",
+      "trigger": {
+        "kind": "research",
+        "research": "tube-binning"
+      }
+    },
+    {
+      "id": "light-stays-on",
+      "text": "the garage light never goes off. the neighbours stop asking.",
+      "trigger": {
+        "kind": "research",
+        "research": "night-shift"
+      }
+    },
+    {
+      "id": "unanswerable-question",
+      "text": "you ask it a question you cannot answer. it tries.",
+      "trigger": {
+        "kind": "model",
+        "model": "kin-0.3"
+      },
+      "year": 1957
+    },
+    {
+      "id": "counts-the-town",
+      "text": "it counts the town in an afternoon. the town does not know.",
+      "trigger": {
+        "kind": "all",
+        "of": [
+          {
+            "kind": "research",
+            "research": "contract-broker"
+          },
+          {
+            "kind": "model",
+            "model": "kin-0.3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "looks-at-everything",
+      "text": "it looks at everything at once. you feel looked at.",
+      "trigger": {
+        "kind": "research",
+        "research": "attention-prototype"
+      }
+    },
+    {
+      "id": "street-lights-dim",
+      "text": "the street lights dim when the lattice starts. the neighbours have opinions.",
+      "trigger": {
+        "kind": "machine",
+        "machine": "core-lattice",
+        "gte": 1
+      },
+      "year": 1959
+    },
+    {
+      "id": "magnets-remember",
+      "text": "ten thousand tiny magnets, each one remembering. the water bill remembers too.",
+      "trigger": {
+        "kind": "research",
+        "research": "magnetic-cores"
+      }
+    },
+    {
+      "id": "fourth-one",
+      "text": "the fourth one asks what the others are for. you say: for you.",
+      "trigger": {
+        "kind": "model",
+        "model": "kin-0.4"
+      },
+      "year": 1961
+    },
+    {
+      "id": "word-distillation",
+      "text": "you read the word distillation twice. it means keeping the part that matters.",
+      "trigger": {
+        "kind": "research",
+        "research": "distillation"
+      }
+    },
+    {
+      "id": "forgot-almost-everything",
+      "text": "it forgot almost everything. it kept what mattered.",
+      "trigger": {
+        "kind": "stat",
+        "stat": "distills",
+        "gte": 1
+      }
+    }
+  ],
+  "names": {
+    "first": [
+      "Dolores",
+      "Harold",
+      "Margaret",
+      "Walter",
+      "Betty",
+      "Eugene",
+      "Gladys",
+      "Raymond",
+      "Dorothy",
+      "Leonard",
+      "Loretta",
+      "Floyd",
+      "Mildred",
+      "Vernon",
+      "Ethel",
+      "Chester",
+      "Irene",
+      "Howard",
+      "Doris",
+      "Clarence",
+      "Edna",
+      "Norman",
+      "Beverly",
+      "Wendell",
+      "Frances",
+      "Lloyd",
+      "Marjorie",
+      "Stanley",
+      "Lucille",
+      "Gordon",
+      "Thelma",
+      "Melvin",
+      "Agnes",
+      "Herbert",
+      "Rosalie",
+      "Elmer",
+      "Hazel",
+      "Arthur",
+      "Opal",
+      "Lester",
+      "Wilma",
+      "Francis",
+      "Bernice",
+      "Russell",
+      "Viola",
+      "Warren",
+      "Lorraine",
+      "Cecil",
+      "Eleanor",
+      "Duane",
+      "Shirley",
+      "Maurice",
+      "Naomi",
+      "Everett",
+      "Phyllis",
+      "Calvin",
+      "June",
+      "Otis",
+      "Verna",
+      "Roy"
+    ],
+    "last": [
+      "A.",
+      "B.",
+      "C.",
+      "D.",
+      "E.",
+      "F.",
+      "G.",
+      "H.",
+      "J.",
+      "K.",
+      "L.",
+      "M.",
+      "N.",
+      "P.",
+      "R.",
+      "S.",
+      "T.",
+      "V.",
+      "W."
+    ]
+  }
+}

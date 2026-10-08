@@ -3,7 +3,7 @@
 // function, an undefined value, a non-finite number or a class instance.
 //
 // Usage: bun scripts/export-content.ts [module] [exportName] [outFile]
-// Defaults: content/era1.ts, ERA1, build/content/era1.json.
+// Defaults: content/era1.ts, ERA1, content/era1.json.
 
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
@@ -24,7 +24,7 @@ export function jsonProblems(value: unknown, path = '$'): string[] {
 }
 
 async function main(): Promise<number> {
-  const [modulePath = 'content/era1.ts', exportName = 'ERA1', outFile = 'build/content/era1.json'] =
+  const [modulePath = 'content/era1.ts', exportName = 'ERA1', outFile = 'content/era1.json'] =
     process.argv.slice(2)
   const loaded: Record<string, unknown> = await import(resolve(ROOT, modulePath))
   const pack = loaded[exportName]

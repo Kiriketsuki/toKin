@@ -1,0 +1,98 @@
+// A small content pack for engine tests. It follows the Era 1 tables in the
+// spec, but the engine specs must not depend on content/era1.ts, so this file
+// holds its own copy. Tuning changes to era1 never break an engine spec.
+
+import type { ContentPack } from './types'
+
+export const FIXTURE: ContentPack = {
+  id: 'fixture',
+  name: 'Fixture',
+  computeUnit: 'kFLOP/s',
+  balance: {
+    startYear: 1952,
+    startCash: 0,
+    handWorkTokens: 5,
+    handWorkContract: 'payroll',
+    researchRate: 0.01,
+    unspentLogitBonus: 0.02,
+    distillK: 1,
+    distillT0: 1000,
+    offlineCapSeconds: 7200,
+    catchUpChunkSeconds: 60,
+    logLimit: 100,
+    revealFraction: 0.5,
+  },
+  text: {
+    offlineReturn: 'you slept. it did not.',
+    offlineSummary: 'away {seconds}s: +{cash} cash, +{tokens} tokens',
+    founderNamed: '{name} opens the garage. it is {year}.',
+    needsFounder: 'name the founder first',
+    notEnoughCash: 'not enough cash: needs {need}',
+    notEnoughRp: 'not enough RP: needs {need}',
+    notEnoughLogits: 'not enough Logits: needs {need}',
+    notEnoughCompute: 'not enough free compute: needs {need} kFLOP/s',
+    locked: '{name} is locked',
+    unknownId: 'unknown id {id}',
+    contextTooShort: 'context too short: needs {need}',
+    trainingBusy: 'a training run is active',
+    alreadyDone: '{name} is already done',
+    maxLevel: '{name} is at max level',
+    distillLocked: 'distill is locked',
+    distilled: 'distilled for {logits} Logits',
+  },
+  machines: [
+    { id: 'relay-rack', name: 'Relay Rack', baseCost: 25, ratio: 1.13, flops: 1, startsUnlocked: true, perks: [] },
+    { id: 'valve-bank', name: 'Tensor Valve Bank', baseCost: 400, ratio: 1.14, flops: 12, startsUnlocked: false, perks: [] },
+    {
+      id: 'drum-cabinet',
+      name: 'Drum Memory Cabinet',
+      baseCost: 6000,
+      ratio: 1.15,
+      flops: 100,
+      startsUnlocked: false,
+      perks: [{ kind: 'contextPerUnit', value: 0.1, maxUnits: 5 }],
+    },
+    { id: 'core-lattice', name: 'Core Lattice', baseCost: 90000, ratio: 1.15, flops: 1500, startsUnlocked: false, perks: [] },
+  ],
+  models: [
+    { id: 'kin-0.1', name: 'kin-0.1', tier: 1, footprint: 1, tokPerSec: 2, quality: 1, context: 64, acquire: { kind: 'start' } },
+    { id: 'kin-0.2', name: 'kin-0.2', tier: 2, footprint: 4, tokPerSec: 6, quality: 1.6, context: 256, acquire: { kind: 'train', cost: 2000 } },
+    { id: 'kin-0.3', name: 'kin-0.3', tier: 3, footprint: 20, tokPerSec: 20, quality: 2.8, context: 1024, acquire: { kind: 'train', cost: 60000 } },
+    { id: 'kin-0.4', name: 'kin-0.4', tier: 4, footprint: 120, tokPerSec: 72, quality: 5, context: 4096, acquire: { kind: 'train', cost: 2400000 } },
+  ],
+  contracts: [
+    { id: 'payroll', name: 'Payroll tabulation', minContext: 32, payPerToken: 0.1 },
+    { id: 'ballistics', name: 'Ballistics tables', minContext: 128, payPerToken: 0.15 },
+    { id: 'census', name: 'Census punching', minContext: 512, payPerToken: 0.22 },
+    { id: 'actuarial', name: 'Actuarial tables', minContext: 2048, payPerToken: 0.35 },
+  ],
+  research: [
+    { id: 'valve-logic', name: 'Valve Logic', description: 'unlocks the valve bank', cost: 10, requires: [], effects: [{ kind: 'unlockMachine', machine: 'valve-bank' }] },
+    { id: 'batching', name: 'Batching', description: '+25% tok/s', cost: 25, requires: [], effects: [{ kind: 'tokMult', value: 1.25 }] },
+    { id: 'training-harness', name: 'Training Harness', description: 'unlocks Train', cost: 30, requires: [], effects: [{ kind: 'unlockJob', job: 'train' }] },
+    { id: 'punch-card-context', name: 'Punch-card Context', description: '+50% context', cost: 40, requires: [], effects: [{ kind: 'contextMult', value: 1.5 }] },
+    { id: 'contract-broker', name: 'Contract Broker', description: 'best contract', cost: 60, requires: [], effects: [{ kind: 'autoContract' }] },
+    { id: 'rotating-storage', name: 'Rotating Storage', description: 'unlocks the drum cabinet', cost: 120, requires: [], effects: [{ kind: 'unlockMachine', machine: 'drum-cabinet' }] },
+    { id: 'tube-binning', name: 'Vacuum Tube Binning', description: 'machines cost 15% less', cost: 200, requires: [], effects: [{ kind: 'machineCostMult', value: 0.85 }] },
+    { id: 'night-shift', name: 'Night Shift', description: 'offline cap 8 h', cost: 300, requires: [], effects: [{ kind: 'offlineCap', seconds: 28800 }] },
+    { id: 'attention-prototype', name: 'Attention Prototype', description: 'x1.5 quality, kin-0.3 and up', cost: 800, requires: [], effects: [{ kind: 'qualityMult', value: 1.5, minTier: 3 }] },
+    { id: 'magnetic-cores', name: 'Magnetic Cores', description: 'unlocks the core lattice', cost: 1500, requires: [], effects: [{ kind: 'unlockMachine', machine: 'core-lattice' }] },
+    { id: 'gradient-checkpointing', name: 'Gradient Checkpointing', description: 'training 30% cheaper', cost: 2500, requires: [], effects: [{ kind: 'trainingCostMult', value: 0.7 }] },
+    { id: 'distillation', name: 'Distillation', description: 'unlocks Distill', cost: 5000, requires: [{ kind: 'model', model: 'kin-0.3' }], effects: [{ kind: 'unlockDistill' }] },
+  ],
+  shop: [
+    { id: 'warm-start', name: 'Warm Start', description: 'start with racks', maxLevel: null, cost: { kind: 'table', values: [1, 3, 9] }, effect: { kind: 'startMachines', machine: 'relay-rack', perLevel: [1, 2, 3] } },
+    { id: 'soft-targets', name: 'Soft Targets', description: '+10% tok/s per level', maxLevel: null, cost: { kind: 'geometric', base: 2, ratio: 1.6 }, effect: { kind: 'tokMultPerLevel', value: 0.1 } },
+    { id: 'long-memory', name: 'Long Memory', description: '+25% context per level', maxLevel: 4, cost: { kind: 'geometric', base: 3, ratio: 2 }, effect: { kind: 'contextMultPerLevel', value: 0.25 } },
+    { id: 'curriculum', name: 'Curriculum', description: 'training 20% faster per level', maxLevel: 5, cost: { kind: 'geometric', base: 4, ratio: 2 }, effect: { kind: 'trainSpeedPerLevel', value: 0.2 } },
+  ],
+  story: [
+    { id: 'first-ten', text: 'the numbers add up. they always do, eventually.', trigger: { kind: 'stat', stat: 'workPresses', gte: 10 } },
+    { id: 'first-rack', text: 'the garage hums.', trigger: { kind: 'machine', machine: 'relay-rack', gte: 1 }, year: 1953 },
+    { id: 'first-agent', text: 'something answers back.', trigger: { kind: 'agents', gte: 1 } },
+  ],
+  names: {
+    first: ['Edna', 'Walter', 'Dorothy', 'Harold', 'Mabel', 'Chester'],
+    last: ['Pruitt', 'Hawkins', 'Lindqvist', 'Bascombe', 'Okafor', 'Vance'],
+  },
+}

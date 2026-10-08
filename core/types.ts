@@ -191,6 +191,8 @@ export type ModelAcquire = { readonly kind: 'start' } | { readonly kind: 'train'
 export interface MachineDef {
   readonly id: MachineId
   readonly name: string
+  // One short line of flavour a host may show under the name.
+  readonly flavour?: string
   readonly baseCost: number
   readonly ratio: number
   // kFLOP/s per unit.
@@ -224,6 +226,8 @@ export interface ResearchDef {
   readonly id: ResearchId
   readonly name: string
   readonly description: string
+  // One short line of flavour a host may show under the description.
+  readonly flavour?: string
   // RP.
   readonly cost: number
   // Every condition must hold before the item can be researched.
@@ -243,7 +247,8 @@ export interface ShopDef {
 
 export interface StoryBeatDef {
   readonly id: StoryId
-  // Terse, lowercase, second person.
+  // Terse, lowercase, second person. The placeholder {agent} stands for the
+  // name of the first agent the player created.
   readonly text: string
   readonly trigger: Condition
   // When set, the beat moves GameState.year forward to this year.
@@ -294,6 +299,10 @@ export type TextKey =
   | 'distillLocked'
   | 'distilled'
 
+// Lines a host shows when a real event in its own world mirrors the game.
+// They never change the economy.
+export type MirrorKey = 'rateLimit' | 'compaction'
+
 export interface ContentPack {
   readonly id: string
   readonly name: string
@@ -301,6 +310,7 @@ export interface ContentPack {
   readonly computeUnit: string
   readonly balance: BalanceDef
   readonly text: Readonly<Record<TextKey, string>>
+  readonly mirror?: Readonly<Record<MirrorKey, string>>
   readonly machines: readonly MachineDef[]
   readonly models: readonly ModelDef[]
   readonly contracts: readonly ContractDef[]
