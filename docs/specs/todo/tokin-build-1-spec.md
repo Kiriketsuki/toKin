@@ -21,7 +21,7 @@
 | # | Question | Raised By | Resolved |
 |:--|:---------|:----------|:---------|
 | 1 | Does a pane receive raw key presses (`Client.onKey`) for shortcuts such as `w`, or are Buttons with focus and Enter the only input? Answer: raw keys reach only a `Client` element, which needs a separate surface module and is absent on vscode and mobile. Build 1 uses Buttons with focus and Enter. See README | Claude | [x] |
-| 2 | Which GitHub account and repo name hosts toKin, once it is ready to share | User | [ ] |
+| 2 | Which GitHub account and repo name hosts toKin, once it is ready to share. Answer: `Kiriketsuki/toKin`, public, created 2026-10-09 | User | [x] |
 | 3 | Subtitle choice (From Pawn to Gold, Scaling Laws, and so on). Not needed for Build 1. Answer: "A to S to UGI" (artificial to super to ultimate general intelligence) | User | [x] |
 
 ---
@@ -294,7 +294,7 @@ Feature: toKin Build 1
 - [ ] A save from each schema version loads after migration
 - [ ] A manual playtest from a fresh save to the first Distill completes with no errors in the transcript's plugin lines (T10, the player's step. An agent-driven smoke test is in docs/smoke-test-2026-10-08.md)
 
-T10 is superseded. The player's playtest on 2026-10-09 asked for a token-first economy, a manual opening, the whole AI stack as eras, and a tabbed pane. Build 2 carries that redesign. Build 1 merges to `main` as it is.
+T10 is superseded. The player's playtest on 2026-10-09 asked for a token-first economy, a manual opening, the whole AI stack as eras, and a tabbed pane. Build 2 carries that redesign. Build 1 merges to `main` as it is. The Build 2 spec (`docs/specs/todo/tokin-build-2-spec.md`, section "Changes to Build 1 scenarios") lists which scenarios here change.
 
 ---
 
