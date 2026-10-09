@@ -22,7 +22,7 @@
 |:--|:---------|:----------|:---------|
 | 1 | Does a pane receive raw key presses (`Client.onKey`) for shortcuts such as `w`, or are Buttons with focus and Enter the only input? Answer: raw keys reach only a `Client` element, which needs a separate surface module and is absent on vscode and mobile. Build 1 uses Buttons with focus and Enter. See README | Claude | [x] |
 | 2 | Which GitHub account and repo name hosts toKin, once it is ready to share | User | [ ] |
-| 3 | Subtitle choice (From Pawn to Gold, Scaling Laws, and so on). Not needed for Build 1 | User | [ ] |
+| 3 | Subtitle choice (From Pawn to Gold, Scaling Laws, and so on). Not needed for Build 1. Answer: "A to S to UGI" (artificial to super to ultimate general intelligence) | User | [x] |
 
 ---
 
@@ -280,7 +280,7 @@ Feature: toKin Build 1
 | T7.1 | Wiring tests with `claude plugin test`: save round-trip, catch-up equals live ticks, lock | High | T7 | done |
 | T8   | Balance bot `sim/balance.ts` and tuning of the content numbers to the targets | High | T5 | done |
 | T9   | Should-haves: mirror events, half-cost reveal, time to afford | Med | T7 | done |
-| T10  | Manual playtest in a live session, fixes, README play instructions | Med | T8, T9 | pending (player) |
+| T10  | Manual playtest in a live session, fixes, README play instructions | Med | T8, T9 | superseded by Build 2 |
 | REVIEW-FIX | Address review findings across core and hooks | High | T9 | done |
 
 ---
@@ -293,6 +293,8 @@ Feature: toKin Build 1
 - [ ] Offline catch-up equals the same time of live ticks within 1%
 - [ ] A save from each schema version loads after migration
 - [ ] A manual playtest from a fresh save to the first Distill completes with no errors in the transcript's plugin lines (T10, the player's step. An agent-driven smoke test is in docs/smoke-test-2026-10-08.md)
+
+T10 is superseded. The player's playtest on 2026-10-09 asked for a token-first economy, a manual opening, the whole AI stack as eras, and a tabbed pane. Build 2 carries that redesign. Build 1 merges to `main` as it is.
 
 ---
 
