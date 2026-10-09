@@ -1,0 +1,8 @@
+# bun test runs the specs (*.spec.ts) under core/, content/, sim/ and scripts/.
+# The hooks tests (hooks/**/*.test.ts and *.test.tsx) need the Claude Code
+# engine, so only claude plugin test runs them. Newer Bun skips them through
+# pathIgnorePatterns. Bun 1.3.10 does not read that key, so the preload marks
+# them as skipped instead.
+[test]
+pathIgnorePatterns = ["hooks/**"]
+preload = ["./scripts/bun-test-preload.ts"]

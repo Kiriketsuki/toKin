@@ -20,9 +20,9 @@
 
 | # | Question | Raised By | Resolved |
 |:--|:---------|:----------|:---------|
-| 1 | Does a pane receive raw key presses (`Client.onKey`) for shortcuts such as `w`, or are Buttons with focus and Enter the only input? T6 checks this against `claude-code.d.ts` and falls back to Buttons only | Claude | [ ] |
+| 1 | Does a pane receive raw key presses (`Client.onKey`) for shortcuts such as `w`, or are Buttons with focus and Enter the only input? Answer: raw keys reach only a `Client` element, which needs a separate surface module and is absent on vscode and mobile. Build 1 uses Buttons with focus and Enter. See README | Claude | [x] |
 | 2 | Which GitHub account and repo name hosts toKin, once it is ready to share | User | [ ] |
-| 3 | Subtitle choice (From Pawn to Gold, Scaling Laws, and so on). Not needed for Build 1 | User | [ ] |
+| 3 | Subtitle choice (From Pawn to Gold, Scaling Laws, and so on). Not needed for Build 1. Answer: "A to S to UGI" (artificial to super to ultimate general intelligence) | User | [x] |
 
 ---
 
@@ -35,13 +35,14 @@
 - **Agents**: the player creates an agent when free compute covers a model footprint. Each agent has a generated name, one model, and one job (Earn, Research, Train). Reassigning is free.
 - **Earn**: an Earn agent pays `tok/s × contract rate × quality` on the best contract its context allows (after Contract Broker), or on the contract the player picks (before it).
 - **Research**: a Research agent makes `tok/s × quality² × 0.01` RP/s. Twelve research items, each with a cost, an effect, and an unlock condition.
-- **Training**: a training run reserves a chosen amount of compute until it delivers the model's training cost in kFLOP·s. When it ends, the next kin model unlocks.
+- **Training**: a training run reserves a chosen amount of compute (all free compute, or half of it) until it delivers the model's training cost in kFLOP·s. When it ends, the next kin model unlocks.
 - **Models**: kin-0.1 to kin-0.4 with footprint, tok/s, quality, and context per the content tables.
 - **Distill**: after the Distillation research, the player can distill. The payout is `floor(k × sqrt(lifetime_tokens / T0))` Logits. The reset follows the reset rules. A confirmation step in the pane shows the payout before the reset.
 - **Logits shop**: six items (Warm Start, Soft Targets, Long Memory, Curriculum, Hand-me-down, Old Notes). Each unspent Logit gives +2% tok/s.
 - **Story**: 15 to 25 terse, lowercase, second-person beats. Each fires once on an economy threshold. Each shows in the pane log and as a toast.
 - **Save and offline**: a versioned save in `$.store`, autosaved every 30 s and on session end. Offline catch-up on load, capped at 2 h (8 h after Night Shift), followed by a summary line.
-- **Single ticker**: only one Claude Code session ticks the game. Other sessions show the state read-only.
+- **Opt-in per session**: the game stays dormant in a session (no clock, no lock, no store writes) until the player runs `/tokin` there. Closing the pane hides the game but keeps it running. `/tokin stop` or session end stops it and releases the lock.
+- **Single ticker**: only one Claude Code session ticks the game. The first session to run `/tokin` holds the lock. Other sessions that run `/tokin` show the state read-only.
 - **Pane**: `/tokin` opens a dedicated pane with header (cash, compute used and wasted, tok/s, RP, Logits, year), agents table, contracts, machines, research, training, and log.
 
 ### Should-Have
@@ -61,10 +62,10 @@
 - `.claude-plugin/plugin.json`, `hooks/hooks.json`, `types/index.d.ts`
 - `hooks/register.tsx`: wiring only
 - `hooks/ui/*.tsx`: pane views
-- `engine/`: `state.ts`, `rng.ts`, `economy.ts`, `step.ts`, `actions.ts`, `distill.ts`, `story.ts`, `save.ts`, `format.ts`
+- `core/` (the spec first named it `engine/`): `state.ts`, `rng.ts`, `economy.ts`, `step.ts`, `actions.ts`, `distill.ts`, `story.ts`, `save.ts`, `format.ts`, plus `ports.ts`, `game.ts`, `view.ts` for portability
 - `content/era1.ts`: all tables as data
 - `sim/balance.ts`: headless greedy bot
-- `tests/*.test.ts`
+- `core/*.spec.ts` (bun test) and `hooks/**/*.test.ts(x)` (claude plugin test)
 
 **Data Model** (`GameState`, versioned, plain JSON):
 - `version`, `seed`, `rngState`, `year`, `cash`, `rp`, `lifetimeTokens`, `runTokens`
@@ -81,8 +82,8 @@
 **Engine contract**: `step(state, dtSeconds) -> state` and `apply(state, action) -> state` are pure and immutable. Live ticks and offline catch-up both call `step`. All formulas live in `economy.ts`.
 
 **Plugin contract**:
-- `session.start`: registers `/tokin`, loads the save, runs catch-up, and starts `$.clock.every(1000)` when the session holds the ticker lock.
-- `command.run` `tokin`: `$.ui.open({ id: 'tokin', title: 'toKin', focus: true })`.
+- `session.start`: registers `/tokin` only. No clock, no lock, no store reads or writes.
+- `command.run` `tokin`: on first use in the session, loads the save, runs catch-up, takes the ticker lock if free, and starts `$.clock.every(1000)` when it holds the lock. Then opens the pane: `$.ui.open({ id: 'tokin', title: 'toKin', focus: true })`. `/tokin stop` saves, stops the clock, and releases the lock.
 - `ui.render` `{ component: 'Pane', requestId: 'tokin' }`: draws the views from the state atom.
 - `ui.press`: dispatches actions to `apply`.
 - `turn.step`: detects mirror events only.
@@ -242,7 +243,17 @@ Feature: toKin Build 1
         | 5h   | 2h        | base cap              |
         | 5h   | 5h        | Night Shift researched |
 
-  Rule: Only one session ticks
+  Rule: Only sessions that opt in run the game, and only one ticks
+
+    Scenario: A session that never runs /tokin stays dormant
+      Given a new Claude Code session with the plugin loaded
+      When the player works without running /tokin
+      Then the plugin starts no clock, takes no lock, and writes nothing to the store
+
+    Scenario: Stopping the game in a session
+      Given session A runs the game and holds the ticker lock
+      When the player runs /tokin stop in session A
+      Then session A saves, stops its clock, and releases the lock
 
     Scenario: A second session opens toKin
       Given session A holds the ticker lock
@@ -257,18 +268,20 @@ Feature: toKin Build 1
 
 | ID   | Task | Priority | Dependencies | Status  |
 |:-----|:-----|:---------|:-------------|:--------|
-| T1   | Scaffold the plugin repo: manifest, hooks.json, types contract, tsconfig, README, .gitignore | High | None | pending |
-| T2   | Engine core: state, seeded RNG, economy formulas, `step`, `apply` for work, buy, agents, jobs, contracts | High | T1 | pending |
-| T2.1 | Engine unit tests: costs, production, waste, context gating, determinism | High | T2 | pending |
-| T3   | Content: `content/era1.ts` with machines, models, contracts, research, shop, story beats, agent name pool | High | T2 | pending |
-| T4   | Training and research systems in the engine, with tests | High | T2, T3 | pending |
-| T5   | Distill, Logits shop, unspent bonus, reset rules, with tests | High | T4 | pending |
-| T6   | Pane UI: header, agents, contracts, machines, research, training, log, Distill confirm. Check pane key input (Open Question 1) | High | T2 | pending |
-| T7   | Plugin wiring: `/tokin`, clock tick, autosave, save versioning, offline catch-up, ticker lock, session end | High | T5, T6 | pending |
-| T7.1 | Wiring tests with `claude plugin test`: save round-trip, catch-up equals live ticks, lock | High | T7 | pending |
-| T8   | Balance bot `sim/balance.ts` and tuning of the content numbers to the targets | High | T5 | pending |
-| T9   | Should-haves: mirror events, half-cost reveal, time to afford | Med | T7 | pending |
-| T10  | Manual playtest in a live session, fixes, README play instructions | Med | T8, T9 | pending |
+| T1   | Scaffold the plugin repo: manifest, hooks.json, types contract, tsconfig, README, .gitignore | High | None | done |
+| T2   | Engine core: state, seeded RNG, economy formulas, `step`, `apply` for work, buy, agents, jobs, contracts | High | T1 | done |
+| T2.1 | Engine unit tests: costs, production, waste, context gating, determinism | High | T2 | done |
+| T3   | Content: `content/era1.ts` with machines, models, contracts, research, shop, story beats, agent name pool | High | T2 | done |
+| T4   | Training and research systems in the engine, with tests | High | T2, T3 | done |
+| VM   | View model: `buildView` in core with rows, affordability and action refusal reasons | High | T4 | done |
+| T5   | Distill, Logits shop, unspent bonus, reset rules, with tests | High | T4 | done |
+| T6   | Pane UI: header, agents, contracts, machines, research, training, log, Distill confirm. Check pane key input (Open Question 1) | High | T2 | done |
+| T7   | Plugin wiring: `/tokin`, clock tick, autosave, save versioning, offline catch-up, ticker lock, session end | High | T5, T6 | done |
+| T7.1 | Wiring tests with `claude plugin test`: save round-trip, catch-up equals live ticks, lock | High | T7 | done |
+| T8   | Balance bot `sim/balance.ts` and tuning of the content numbers to the targets | High | T5 | done |
+| T9   | Should-haves: mirror events, half-cost reveal, time to afford | Med | T7 | done |
+| T10  | Manual playtest in a live session, fixes, README play instructions | Med | T8, T9 | superseded by Build 2 |
+| REVIEW-FIX | Address review findings across core and hooks | High | T9 | done |
 
 ---
 
@@ -279,7 +292,9 @@ Feature: toKin Build 1
 - [ ] The balance bot meets the targets on 10 seeds: first agent before minute 3, kin-0.2 before minute 10, Distill unlocked at 30 to 45 min, run 2 at least 2x faster
 - [ ] Offline catch-up equals the same time of live ticks within 1%
 - [ ] A save from each schema version loads after migration
-- [ ] A manual playtest from a fresh save to the first Distill completes with no errors in the transcript's plugin lines
+- [ ] A manual playtest from a fresh save to the first Distill completes with no errors in the transcript's plugin lines (T10, the player's step. An agent-driven smoke test is in docs/smoke-test-2026-10-08.md)
+
+T10 is superseded. The player's playtest on 2026-10-09 asked for a token-first economy, a manual opening, the whole AI stack as eras, and a tabbed pane. Build 2 carries that redesign. Build 1 merges to `main` as it is.
 
 ---
 

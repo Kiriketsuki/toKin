@@ -1,0 +1,40 @@
+# Agent-driven smoke test, 2026-10-08
+
+This is not the T10 manual playtest. T10 stays with the player, as the goal
+for Build 1 says. This record is supporting evidence only.
+
+Claude Code v2.1.294 in a tmux terminal, 150 columns. The session ran
+`claude --plugin-dir /home/kiriketsuki/dev/Personal/toKin` from a trusted parent
+folder. A Claude agent drove it with keystrokes and read the screen. The store
+started empty, so the run began from a fresh save.
+
+## Steps and results
+
+| Step | Action | Result |
+|---|---|---|
+| 1 | `/tokin` | The pane opened on the right with the founder prompt |
+| 2 | Typed `Ada`, Enter | Header `toKin \| Ada \| 1952`. The opening log lines appeared |
+| 3 | Work by hand, 60 presses | $30.00. Log: "the numbers add up. they always do, eventually." |
+| 4 | Buy Relay Rack | Next cost $28.25. Compute 0/1 kFLOP/s, wasted 1 |
+| 5 | New kin-0.1 agent: Earn | Agent "Norman A." on payroll at $0.80/s. Wasted 0. The rack showed "in 23s". The earnest beat fired |
+| 6 | `/exit`, wait 82 s, relaunch, `/tokin` | The save came back. Log: "you slept. it did not." and "82 seconds passed. it made 655.2 tokens and earned $65.52." |
+| 7 | A second session ran `/tokin` | "running in another session. this pane is read-only." |
+| 8 | `/tokin stop` in session 1 | "toKin stopped." The lock record was empty afterwards |
+| 9 | Fast-forward: the balance bot (seed 1) played to the Distill point, and its save went into the plugin store | `/tokin` loaded it: 1957, $10.74k/s, 2.45k kFLOP/s, Distillation researched |
+| 10 | Distill, then the confirm step | "Distill now for 339 Logits? The reset cannot be undone." with Confirm and Cancel |
+| 11 | Confirm Distill | Cash $0, compute 0, "Logits 350 (+700% tok/s)". The save holds distills 1, research [], models [kin-0.1]. Log: "it forgot almost everything. it kept what mattered." |
+
+The payout grew from 339 to 350 between the preview and the confirm,
+because the game kept ticking while focus moved.
+
+## Errors
+
+The transcript scrollback held no plugin line for a skipped hook, a refused
+render or a module that did not load.
+
+## Limits
+
+Step 9 skipped about 31 minutes of play with the bot. The bot plays the same
+core the pane drives, and `bun run sim` covers that stretch on 10 seeds. A
+human playthrough of the full 32 minutes is still worth doing for feel and
+pacing.
