@@ -69,7 +69,7 @@ tune it later.
 
 - There is no GPU. The CPU trains nets and runs the copies.
 - Gig money buys more CPU, so more copies run.
-- How compute is shared between running, training and research is open (Q1).
+- D11 to D15 set how compute works.
 
 ### D8. Specialised tokens exist only inside pipelines
 
@@ -106,19 +106,54 @@ tune it later.
   catches up, and the edge from that research fades because everyone has it.
   Q7 checks that we read "both ways" right.
 
+### D11. Compute is one number, in MIPS on the CPU
+
+- Compute is a single number. On the CPU it is measured in MIPS, millions of
+  instructions per second.
+- Copies, converters and training runs are jobs. Each job asks for MIPS.
+- Later the number splits by hardware: FLOP/s for GPUs and TOPS for
+  specialised accelerators.
+
+### D12. Too many jobs oversubscribe by default
+
+- When jobs ask for more MIPS than the machine has, they share it and all slow
+  down by more than their fair share. The story is context switching and IO.
+- A player who manages actively queues jobs instead, so the running jobs keep
+  full speed.
+- The slowdown is the penalty for idle play. The curve is open (Q10).
+
+### D13. Jobs are managed by hand or with priorities
+
+Both playstyles are supported. Q11 asks how priorities and the slowdown
+interact.
+
+### D14. Research takes no compute
+
+Research nodes cost research tokens only. The pipeline limits research, and
+pipeline converters are jobs that use compute, so compute reaches research only
+through the pipeline.
+
+### D15. Money buys every kind of hardware
+
+Faster chips, more cores, more machines, RAM and overclocking. RAM caps how big
+a net the machine can load, which ties to Q2. Overclocking adds MIPS and can
+crash the machine as an event.
+
 ## Open questions
 
 | # | Question |
 |:--|:--|
-| Q1 | How do running copies, training and research share the CPU? |
 | Q2 | Scale: a size choice with a sweet spot each time you train (near 20 data tokens per parameter), or fixed sizes per architecture? |
-| Q3 | Do research nodes also take compute time, or only research tokens? |
-| Q4 | What does a copy need to run: a CPU slot, or a share of the CPU? |
 | Q5 | Prices: the typing ladder ratio and the costs of the first net. |
 | Q6 | What unlocks the first net: a typing level, or a token total? |
 | Q7 | Do both publishing costs apply to every paper? |
 | Q8 | Setting: the 1950s garage, or another frame? |
 | Q9 | Do real key presses count in the browser, or only the on-screen button? |
+| Q10 | The slowdown curve when jobs oversubscribe. Proposed: each job runs at (capacity / demand) squared, so a machine asked for twice its MIPS does half its work. |
+| Q11 | Does a priority list avoid the slowdown by queuing the lowest jobs, or only decide who slows down most? If it avoids it, is it earned through research? |
+| Q12 | Does a training run ask for a fixed amount of MIPS set by the net's size, or take whatever compute the player gives it? |
+
+Resolved: Q1 and Q4 by D11 to D13, Q3 by D14.
 
 ## Later
 
