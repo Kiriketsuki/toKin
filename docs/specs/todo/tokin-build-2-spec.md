@@ -1,5 +1,7 @@
 # Feature: toKin Build 2 (Token Economy and Browser Host)
 
+> **Economy superseded (2026-10-11).** The economy in this spec (the token split, the compute split, buyers and the Era 1 tables) is being redesigned step by step. `tokin-economy-decisions.md` is the current record. The browser host and the shared pane are unchanged.
+
 ## Overview
 
 **User Story**: As a player, I want to found an AI lab by hand-coding tokens, build a Perceptron, and grow it through the perceptron era, in Claude Code or in a browser tab, so that I get the same token-first incremental in both places.
