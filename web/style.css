@@ -1,0 +1,273 @@
+/* The browser look of toKin: a ledger in a terminal. The pane keeps its
+   terminal shape, so text is monospace and spaces line up columns. */
+
+:root {
+  --bg: #f3eee4;
+  --panel: #fbf8f1;
+  --ink: #2a2520;
+  --dim: #73695f;
+  --line: #ddd3c4;
+  --line-strong: #b9ac99;
+  --title: #96560a;
+  --good: #136f4f;
+  --warn: #a3323c;
+  --info: #255f9c;
+  --toast-bg: #2a2520;
+  --toast-ink: #f3eee4;
+  --row: 1.5em;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12100e;
+    --panel: #1a1714;
+    --ink: #e9e1d5;
+    --dim: #948a7e;
+    --line: #2f2924;
+    --line-strong: #4f463d;
+    --title: #fbb13c;
+    --good: #3cbf93;
+    --warn: #e86a74;
+    --info: #63aeee;
+    --toast-bg: #e9e1d5;
+    --toast-ink: #12100e;
+    color-scheme: dark;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+body {
+  font: 15px/1.5 ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  -webkit-text-size-adjust: 100%;
+}
+
+.page {
+  max-width: 104ch;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.pane {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px 20px;
+  min-height: 12em;
+}
+
+.loading,
+.viewer {
+  margin: 0 0 var(--row);
+}
+
+.loading {
+  color: var(--dim);
+}
+
+.viewer {
+  color: var(--warn);
+}
+
+/* Kit elements (web/kit.ts) */
+
+.box {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.box-row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.box-column {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.box-wrap {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.box-column > .box-row {
+  margin: 1px 0;
+}
+
+.text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.text-bold {
+  font-weight: 700;
+}
+
+.text-dim {
+  color: var(--dim);
+}
+
+.tone-title {
+  color: var(--title);
+}
+
+.tone-good {
+  color: var(--good);
+}
+
+.tone-warn {
+  color: var(--warn);
+}
+
+.tone-info {
+  color: var(--info);
+}
+
+.button {
+  font: inherit;
+  line-height: 1.35;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 1px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+
+.button:hover {
+  border-color: var(--title);
+  color: var(--title);
+}
+
+.button:focus-visible,
+.field-input:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 1px;
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button-dim {
+  color: var(--dim);
+  border-style: dashed;
+}
+
+.button-primary {
+  background: var(--title);
+  border-color: var(--title);
+  color: var(--panel);
+}
+
+.button-primary:hover {
+  color: var(--panel);
+  filter: brightness(1.08);
+}
+
+.field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 1ch;
+  margin: 8px 0;
+}
+
+.field-input {
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  padding: 4px 8px;
+  width: 24ch;
+  max-width: 100%;
+}
+
+.probe {
+  position: absolute;
+  visibility: hidden;
+  white-space: pre;
+}
+
+/* Page chrome */
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 2ch;
+  margin-top: 12px;
+  color: var(--dim);
+  font-size: 13px;
+}
+
+.footer a {
+  color: var(--info);
+}
+
+.mark {
+  color: var(--title);
+}
+
+.toasts {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: min(52ch, calc(100vw - 32px));
+}
+
+.toast {
+  background: var(--toast-bg);
+  color: var(--toast-ink);
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+  cursor: pointer;
+  animation: toast-in 160ms ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (max-width: 600px) {
+  body {
+    font-size: 14px;
+  }
+
+  .page {
+    padding: 16px 16px 40px;
+  }
+
+  .pane {
+    padding: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}

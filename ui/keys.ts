@@ -3,7 +3,7 @@
 // ui.press handler and a test share one mapping and the pane keeps no state of
 // its own beyond UiState.
 
-import type { Action, ViewModel } from '../../core/types'
+import type { Action, ViewModel } from '../core/types'
 
 // Pane-local values. This mirrors TokinPane in types/index.d.ts.
 export interface UiState {

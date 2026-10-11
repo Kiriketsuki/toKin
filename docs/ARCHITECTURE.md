@@ -1,6 +1,6 @@
 # toKin Architecture
 
-toKin ships first as a Claude Code mod. A standalone game follows it. This
+toKin runs in two hosts: a Claude Code mod and a browser page. This
 document sets the layers, the contracts and the formulas that let the same
 core run in both hosts. Every later task follows it. The spec is
 `docs/specs/todo/tokin-build-1-spec.md`.
@@ -18,32 +18,60 @@ core run in both hosts. Every later task follows it. The spec is
    step, apply, view            pure functions over GameState
    game.ts                      the runtime driver over HostPorts
                |
-     +---------+----------+----------------------+
+               +-------------------+
+               |                   v
+               |                 ui/      the shared pane: draws the
+               |                  |       ViewModel with a host's Kit
+     +---------+----------+-------+--------------+
      |                    |                      |
-  hooks/               sim/                  (later) standalone host
-  Claude Code mod      headless balance bot  web, desktop or terminal
+  hooks/               sim/                   web/
+  Claude Code mod      headless balance bot   browser host (Preact)
 ```
 
 | Layer | Folder | May import | Must not |
 |:--|:--|:--|:--|
 | Content | `content/` | `core/types.ts` (types only) | import a package, `claude-code`, Node or Bun. Hold a function |
 | Core | `core/` | other `core/` files, `content/` types | import `claude-code`, a package, Node or Bun. Use `$`, `Date.now`, `new Date`, `Math.random`, `console`, timers |
-| Claude Code host | `hooks/` | `claude-code`, `core/`, `content/`, `types/` | hold game rules |
+| Shared pane | `ui/` | other `ui/` files, `core/` | import `claude-code`, a package, the DOM, Node or Bun. Use host globals. Hold game rules |
+| Claude Code host | `hooks/` | `claude-code`, `core/`, `content/`, `ui/`, `types/` | hold game rules |
+| Browser host | `web/` | `preact`, the DOM, `core/`, `content/`, `ui/` | import `claude-code`. Hold game rules |
 | Balance host | `sim/` | `core/`, `content/`, Bun and Node | import `claude-code` |
 | Tooling | `scripts/` | anything Bun runs | ship in the mod |
 
-Three checks enforce the boundary:
+Four checks enforce the boundary:
 
-1. `scripts/check-boundary.ts` (run by `core/boundary.spec.ts` and `bun run check:boundary`) scans `core/`, `content/` and `sim/` for the forbidden imports and globals in the table.
+1. `scripts/check-boundary.ts` (run by `core/boundary.spec.ts` and `bun run check:boundary`) scans `core/`, `content/`, `ui/`, `sim/` and `web/` for the forbidden imports and globals in the table. `core/`, `content/` and `ui/` are strict zones: relative imports only, and no host globals.
 2. `tsconfig.core.json` types `core/` and `content/` with `lib: es2023` and `types: []`. No host global exists there, so a host call fails to compile.
-3. The hooks module imports the core with relative paths. The Claude Code loader follows an import out of `hooks/` into `core/`. `hooks/register.test.tsx` proves it: the pane draws `PORTS_VERSION` from `core/ports.ts`.
+3. `ui/` type-checks against both hosts. `tsconfig.json` checks it with the Claude Code globals, and `tsconfig.web.json` checks it with the browser globals in `web/env.d.ts`, with no Claude Code types at all.
+4. The hooks module imports the core and the pane with relative paths. The Claude Code loader follows an import out of `hooks/` into `core/` and `ui/`. `hooks/register.test.tsx` proves it: the pane draws `PORTS_VERSION` from `core/ports.ts`.
 
 ### Import boundary result (T1)
 
 The flat layout works. `hooks/register.tsx` imports `../core/ports`, and
 both `claude plugin validate` and `claude plugin test` load it. So `core/`
 and `content/` stay at the repo root, beside `hooks/`. They do not move
-under `hooks/`.
+under `hooks/`. The same holds for `ui/`: the mod imports `../ui/pane`.
+
+### The shared pane and the Kit
+
+`ui/` holds the pane: `drawPane(input)` is a pure function of the
+ViewModel, the pane state (`UiState`: the Distill confirm step and a
+notice) and the width in characters. It draws with a `Kit`
+(`ui/kit.ts`): `Box`, `Text`, `Button` and `Input`, and only the props
+the pane uses. `ui/keys.ts` maps a Button key to an Action, and
+`ui/controller.ts` sends it to the Game and stores the notice.
+
+- The mod passes the elements of `$.ui.resolve(e)` as the Kit.
+- The browser passes the Preact Kit in `web/kit.ts`: Box is a flex `div`, Text a `span`, Button a `button` with its key as `data-key`, and Input a small form.
+
+JSX in `ui/` compiles to calls on a global `h`, with no import. Inside
+Claude Code the engine gives `h`. In the browser `web/jsx.ts` installs
+one with the same contract: `h` calls a function tag at once with its
+props, key and children included, so a kit element sees its own key.
+`<>...</>` is a column Box in both hosts.
+
+A pane width under 80 characters drops table columns. The mod reads the
+width from the pane props. The browser measures the pane in `ch`.
 
 ## Contracts
 
@@ -336,7 +364,7 @@ The spec lists engine files under `engine/`. They live under `core/`.
 | T3 | `content/era1.ts`, `content/era1.spec.ts` |
 | T4 | `core/training.ts`, `core/research.ts`, `core/view.ts`, and their specs. T4 adds its formulas to `core/economy.ts` |
 | T5 | `core/distill.ts`, `core/shop.ts`, and their specs. T5 adds its formulas to `core/economy.ts` |
-| T6 | `hooks/ui/*.tsx` and `hooks/ui/*.test.tsx` |
+| T6 | `ui/*.tsx` (first `hooks/ui/`), `hooks/pane.test.ts` |
 | T7 | `core/game.ts`, `core/save.ts`, `hooks/register.tsx`, `hooks/adapter.ts`, and their tests |
 | T8 | `sim/balance.ts`, `sim/*.spec.ts`, and tuning of the numbers in `content/era1.ts` |
 
@@ -354,32 +382,56 @@ its report.
 - **Size.** Files stay under 400 lines where possible, 800 at most. Functions stay under 50 lines.
 - **Comments.** Plain STE English: no em-dash, no semicolon in prose, no contraction, active voice.
 - **No emojis** anywhere.
-- **Tests.** Core, content, sim and script specs are `*.spec.ts` beside the code. `bun test` runs them. Hooks tests are `hooks/**/*.test.ts` or `*.test.tsx`. `claude plugin test .` runs them. `bunfig.toml` keeps `bun test` away from the hooks tests: newer Bun skips them through `pathIgnorePatterns`, and on Bun 1.3.10 a preload marks them as skipped.
+- **Tests.** Core, content, ui, web, sim and script specs are `*.spec.ts` beside the code. `bun test` runs them. Browser tests are `web/e2e/*.e2e.ts`. Playwright runs them, and `bun test` does not match the suffix. Hooks tests are `hooks/**/*.test.ts` or `*.test.tsx`. `claude plugin test .` runs them. `bunfig.toml` keeps `bun test` away from the hooks tests: newer Bun skips them through `pathIgnorePatterns`, and on Bun 1.3.10 a preload marks them as skipped.
 - **Commands.** A hook registers a command by a literal name (`name: 'tokin'`). Then `claude plugin validate` reports the `command.run` hook as one that answers its own command, not as a gate.
 
 ## Tooling
 
 | Command | What it does |
 |:--|:--|
-| `bun install` | installs `typescript` and `@types/bun` |
+| `bun install` | installs `typescript`, `@types/bun`, and the browser tools: `preact`, `preact-render-to-string` and `@playwright/test` |
 | `bun run types:sync` | copies the Claude Code API declarations into `.claude-plugin/types/` on a fresh clone. The engine writes the same file each time it loads the mod |
 | `bun test` | runs the specs |
-| `bun run typecheck` | `tsc -p .` for everything, then `tsc -p tsconfig.core.json` for the core alone with no host types |
+| `bun run typecheck` | `tsc -p .` for everything, then `tsc -p tsconfig.core.json` for the core alone with no host types, then `tsc -p tsconfig.web.json` for the pane and the browser host with no Claude Code types |
 | `bun run check:boundary` | runs the boundary check |
 | `bun run test:plugin` | `claude plugin test .` |
 | `bun run sim` | runs the balance bot |
 | `bun run export:content` | writes the content pack as JSON |
 | `claude plugin validate .` | checks the manifest, the contract and the hooks module |
+| `bun run web:dev` | serves `web/index.html` with Bun's dev server, which bundles on each load |
+| `bun run web:build` | bundles the browser host into `build/web`, with relative asset paths |
+| `bun run web:serve` | serves `build/web` on port 4173 |
+| `bun run test:web` | builds, serves and runs the Playwright tests in `web/e2e/` |
+
+## The browser host
+
+`web/` runs the same core, content and pane in a browser tab. It is a
+static page, so GitHub Pages serves it (`.github/workflows/pages.yml`).
+
+| Port | Browser mapping |
+|:--|:--|
+| `storage` | `localStorage`, as JSON. A value that does not parse comes back as a string, so the core reports a bad save and keeps a copy. With no `localStorage`, an in-memory store and a toast |
+| `clock.now` | `Date.now()` |
+| `clock.every` | a timer in a small worker. A browser slows page timers in a background tab, down to once a minute, which would let the lock go stale. Worker timers keep their pace. Without a worker, `setInterval` |
+| `notifier` | toasts in a corner stack. The pane shows the log |
+| `instanceId` | a random id per tab |
+| `newSeed` | `crypto.getRandomValues` |
+
+- Each tab is one instance. The core ticker lock in `localStorage` lets one tab tick. Another tab shows `running in another tab. this tab is read-only.` and takes over within a few seconds of the first one closing.
+- `pagehide` stops the game, which saves and frees the lock. `pageshow` from the back-forward cache starts it again.
+- Offline catch-up is the core path, with the same cap as the mod.
+- `localStorage` belongs to the origin, so a save survives a redeploy. Every Pages site of one GitHub account shares the origin `<user>.github.io`, so the keys keep the `tokin.` prefix.
+- The browser has no mirror events.
 
 ## A standalone host
 
-A future standalone build (web, desktop or terminal) reuses `core/` and
-`content/` unchanged:
+Another standalone build (desktop or terminal) reuses `core/` and
+`content/` unchanged, and `ui/` when it can give a Kit:
 
 1. Implement `HostPorts`. Storage maps to `localStorage`, IndexedDB or a file. The clock maps to `Date.now` and `setInterval`. The notifier maps to the host's toast and log. `instanceId` names the window or process. `newSeed` uses the host's random source.
 2. Load the content. A TypeScript host imports `content/era1.ts`. Another language loads `content/era1.json` from `bun run export:content`.
 3. Start the runtime from `core/game.ts` with the ports and the content. It loads the save, runs catch-up, takes the ticker lock and ticks.
-4. Draw the `ViewModel` with the host's own widgets. Map each control to its `ActionOption.action` and dispatch it.
+4. Draw the `ViewModel`: pass a Kit to `drawPane` from `ui/pane.tsx`, or draw it with the host's own widgets. Map each control to its `ActionOption.action` and dispatch it.
 5. A single-instance host still takes the lock. The lock costs nothing there, and it protects a save that two windows share.
 
 Only `hooks/` knows about Claude Code. The mirror events (rate limit,

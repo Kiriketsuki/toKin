@@ -1,8 +1,8 @@
 // The agents table, the contracts list and the machines list. Wide panes show
 // every column. A pane under 80 columns drops the model and tok/s columns.
 
-import { fmtCompute, fmtDollars, fmtDuration, fmtNum, fmtRate } from '../../core/format'
-import type { AgentOutput, AgentRow } from '../../core/types'
+import { fmtCompute, fmtDollars, fmtDuration, fmtNum, fmtRate } from '../core/format'
+import type { AgentOutput, AgentRow } from '../core/types'
 import { row } from './layout'
 import { ActionButton, ButtonRow, Heading, optionFor, optionsWith } from './parts'
 import type { Ctx } from './parts'

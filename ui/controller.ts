@@ -1,10 +1,10 @@
 // Turns pane input into game calls. A button key and a founder name arrive
-// here from the pane. The controller maps them with hooks/ui/keys.ts, sends
+// here from the pane. The controller maps them with ui/keys.ts, sends
 // the Action to the game and stores the pane notice. It holds no game rule.
 
 import type { Game } from '../core/game'
-import type { UiState } from './ui/keys'
-import { afterAction, founderAction, reduceUi, resolveKey } from './ui/keys'
+import type { UiState } from './keys'
+import { afterAction, founderAction, reduceUi, resolveKey } from './keys'
 
 // Where the pane keeps its own state between presses.
 export interface PaneStore {

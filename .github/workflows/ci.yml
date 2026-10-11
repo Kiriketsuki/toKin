@@ -1,0 +1,57 @@
+# Checks every pull request and every push to main. The root typecheck
+# (tsconfig.json) and claude plugin test need the Claude Code engine and its
+# API types, so they stay local steps. CI type-checks the core and the
+# shared pane with the browser globals, which need no Claude Code.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - name: Typecheck the core
+        run: bunx tsc --noEmit -p tsconfig.core.json
+      - name: Typecheck the shared pane and the browser host
+        run: bunx tsc --noEmit -p tsconfig.web.json
+      - name: Boundary
+        run: bun run check:boundary
+      - name: Specs
+        run: bun test
+      - name: Balance bot
+        run: bun run sim
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - run: bun install --frozen-lockfile
+      - name: Install Chromium
+        run: bunx playwright install --with-deps chromium
+      - name: Browser tests
+        run: bun run test:web
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

@@ -10,7 +10,7 @@ import { Research, Shop, Training } from './progress'
 import { ActionButton, Heading, makeCtx, optionFor } from './parts'
 import type { Ctx, Kit } from './parts'
 import type { UiState } from './keys'
-import type { ViewModel } from '../../core/types'
+import type { ViewModel } from '../core/types'
 
 export type { Kit } from './parts'
 

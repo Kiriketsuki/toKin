@@ -5,14 +5,34 @@ import { blank, checkBoundary, checkSource, ZONES } from '../scripts/check-bound
 const ROOT = new URL('..', import.meta.url).pathname
 const CORE = ZONES.find(zone => zone.dir === 'core') ?? { dir: 'core', isStrict: true }
 const SIM = ZONES.find(zone => zone.dir === 'sim') ?? { dir: 'sim', isStrict: false }
+const UI = ZONES.find(zone => zone.dir === 'ui') ?? { dir: 'ui', isStrict: true }
+const WEB = ZONES.find(zone => zone.dir === 'web') ?? { dir: 'web', isStrict: false }
 
 function rules(file: string, source: string, zone = CORE): string[] {
   return checkSource(file, source, zone).map(v => v.rule)
 }
 
 describe('the repository keeps the boundary', () => {
-  test('core, content and sim have no violations', () => {
+  test('core, content, ui, sim and web have no violations', () => {
     expect(checkBoundary(ROOT)).toEqual([])
+  })
+
+  test('the shared pane and the browser host are zones', () => {
+    expect(UI.isStrict).toBe(true)
+    expect(WEB.isStrict).toBe(false)
+  })
+})
+
+describe('the ui and web zones', () => {
+  test('the shared pane imports neither a host nor a package', () => {
+    expect(rules('ui/a.tsx', "import type { Elements } from 'claude-code'\n", UI)).toEqual(['imports claude-code'])
+    expect(rules('ui/a.tsx', "import { h } from 'preact'\n", UI)).toEqual(['imports a non-relative module'])
+    expect(rules('ui/a.tsx', "import { fmtNum } from '../core/format'\n", UI)).toEqual([])
+  })
+
+  test('the browser host may import Preact but not Claude Code', () => {
+    expect(rules('web/a.ts', "import { render } from 'preact'\nsetInterval(() => 0, 1000)\n", WEB)).toEqual([])
+    expect(rules('web/a.ts', "import { atom } from 'claude-code'\n", WEB)).toEqual(['imports claude-code'])
   })
 })
 

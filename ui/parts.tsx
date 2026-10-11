@@ -1,16 +1,13 @@
 // Shared pieces for the pane sections. Every section takes a Ctx and draws
 // only from ctx.view, so the pane never reads game state.
 
-import type { Elements } from 'claude-code'
-
-import type { ActionOption, ViewModel } from '../../core/types'
+import type { ActionOption, ViewModel } from '../core/types'
+import type { Kit } from './kit'
 import { isNarrow } from './layout'
 import type { UiState } from './keys'
 import { COLOR } from './theme'
 
-// The element constructors the pane needs. Mobile has no Input, so the pane
-// draws only on terminal and desktop.
-export type Kit = Pick<Elements['terminal'], 'Box' | 'Text' | 'Button' | 'Input'>
+export type { Kit } from './kit'
 
 export interface Ctx {
   readonly kit: Kit

@@ -1,4 +1,4 @@
-import { expect, test } from 'claude-code/testing'
+import { expect, test } from 'bun:test'
 
 import { afterAction, founderAction, INITIAL_UI, reduceUi, resolveKey } from './keys'
 import { distillView, playingView } from './fixtures'

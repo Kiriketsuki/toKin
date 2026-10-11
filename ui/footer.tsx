@@ -1,6 +1,6 @@
 // The log and the Distill preview with its confirm step.
 
-import { fmtNum } from '../../core/format'
+import { fmtNum } from '../core/format'
 import { KEY_ASK_DISTILL, KEY_CANCEL_DISTILL, KEY_DISTILL } from './keys'
 import { Heading } from './parts'
 import type { Ctx } from './parts'

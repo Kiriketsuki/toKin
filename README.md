@@ -5,9 +5,9 @@ toKin is an incremental game about the first AI company. You found it in a
 models to earn, research and train, and then distill the company into Logits
 to start again stronger.
 
-Build 1 ships as a Claude Code mod that runs in a pane beside your work. The
-game engine is plain TypeScript with no Claude Code dependency, so a
-standalone build can reuse it later. See `docs/ARCHITECTURE.md`.
+toKin runs in two places: as a Claude Code mod in a pane beside your work,
+and as a page in a browser tab. Both run the same engine, the same content
+and the same pane. See `docs/ARCHITECTURE.md`.
 
 ## Play it in Claude Code
 
@@ -19,6 +19,20 @@ claude --plugin-dir /home/kiriketsuki/dev/Personal/toKin
 
 Then run `/tokin` to open the game pane.
 
+## Play it in a browser
+
+Once the Pages workflow has run on `main`, the game is at
+<https://kiriketsuki.github.io/toKin/>. To play from a clone:
+
+```sh
+bun install
+bun run web:dev             # Bun's dev server, at the URL it prints
+```
+
+The save lives in the browser's `localStorage`, apart from the mod's save.
+Only one tab ticks the game. Another tab shows the game read-only and
+takes over when the first one closes.
+
 ## Develop
 
 Bun runs the tests and the scripts.
@@ -28,18 +42,29 @@ bun install
 bun run types:sync          # once on a fresh clone: Claude Code API types for tsc
 bun test                    # core, content, sim and script specs
 bun run test:plugin         # hooks tests, through claude plugin test
-bun run typecheck           # tsc for the whole repo, then for the core alone
-bun run check:boundary      # core and content stay free of Claude Code
+bun run typecheck           # tsc for the whole repo, the core alone, and the browser host
+bun run check:boundary      # core, content and ui stay free of Claude Code
 claude plugin validate .    # manifest, state contract and hooks module
+bun run web:build           # the browser build, into build/web
+bun run test:web            # Playwright, against the browser build
 ```
+
+CI (`.github/workflows/ci.yml`) runs the core and browser typechecks, the
+boundary check, `bun test`, the balance bot and the Playwright tests. The
+whole-repo typecheck and `claude plugin test` need Claude Code, so they stay
+local. The Pages workflow publishes `build/web` on every push to `main`. It
+needs one setting: under Pages in the repository settings, set the source to
+GitHub Actions.
 
 | Folder | Holds |
 |:--|:--|
 | `core/` | the pure game engine and its contracts |
 | `content/` | the game tables as plain data |
-| `hooks/` | the Claude Code host adapter and the pane |
+| `ui/` | the shared pane, drawn with each host's element kit |
+| `hooks/` | the Claude Code host adapter |
+| `web/` | the browser host: Preact kit, browser ports, page and Playwright tests |
 | `sim/` | the headless balance bot |
-| `scripts/` | the boundary check, the content export and the type sync |
+| `scripts/` | the boundary check, the content export, the type sync and the static server for the browser build |
 | `types/` | the `$.state` contract of the mod |
 
 ## How to play
@@ -65,6 +90,7 @@ On the first run the pane asks for a founder name. Type it and press Enter.
 
 Every control is a button in the pane. Click it, or move focus and press Enter.
 There are no global hotkeys, because the pane shares the terminal with Claude Code.
+The browser uses the same buttons: click, or Tab and Enter.
 
 Raw key presses (Open Question 1): the plugin API delivers raw keys only to a
 `Client` element through `onKey`. A `Client` needs a separate surface module, and the
@@ -113,15 +139,17 @@ full contract. The summary follows.
 - `core/` holds the engine. `step(state, content, dt)` and `apply(state, content, action)` return new objects and never mutate their input. The core reads no wall clock and draws no random number outside the seeded generator in the state.
 - `content/` holds the Era 1 tables as plain data. `content/era1.json` is an export of the same tables.
 - The core reaches the outside world only through `core/ports.ts`: storage, a clock, a notifier, an instance id and a seed source. Input arrives as an `Action` through `Game.dispatch`. Output is the view model from `buildView`.
-- `hooks/` is the only code that imports `claude-code`. It builds the ports from the plugin store and clock, forwards presses as actions, and draws the view model. It also turns two Claude Code events into `Game.mirror(key)` calls.
+- `ui/` holds the pane. `drawPane` draws the view model with a `Kit` of four elements (Box, Text, Button, Input) that each host supplies.
+- `hooks/` is the only code that imports `claude-code`. It builds the ports from the plugin store and clock, forwards presses as actions, and draws the pane with the Claude Code elements. It also turns two Claude Code events into `Game.mirror(key)` calls.
+- `web/` is the browser host. It builds the ports from `localStorage`, a worker timer and page toasts, and draws the pane with Preact.
 - `sim/` is a second host. It plays Era 1 headless and checks the balance targets.
 - `bun run check:boundary` fails when `core/` or `content/` imports a host API.
 
-To ship a standalone game:
+To ship another standalone game (`web/` is a worked example):
 
 1. Write a host that implements `HostPorts` for your platform. `core/fakeports.ts` is a worked example.
 2. Create `new Game(ports, ERA1)` and call `start()`.
-3. Render `game.view()` on every `game.subscribe` callback.
+3. Render `game.view()` on every `game.subscribe` callback, with `drawPane` and your own Kit or with your own widgets.
 4. Turn input into `Action` values and pass them to `game.dispatch`. Show the refusal text when `ok` is false.
 5. Map your own platform events to `game.mirror('rateLimit' | 'compaction')`, or skip them.
 6. Reuse the save format as is. The save is the `GameState` JSON, and `core/save.ts` migrates old versions.

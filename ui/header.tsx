@@ -1,6 +1,6 @@
 // The header: founder, year, cash, compute, tok/s, RP and Logits.
 
-import { fmtDollars, fmtNum, fmtPercent, fmtRate } from '../../core/format'
+import { fmtDollars, fmtNum, fmtPercent, fmtRate } from '../core/format'
 import type { Ctx } from './parts'
 import { COLOR } from './theme'
 

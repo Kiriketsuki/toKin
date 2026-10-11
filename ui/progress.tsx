@@ -1,6 +1,6 @@
 // Research, training and the shop.
 
-import { fmtCompute, fmtDuration, fmtNum, fmtPercent } from '../../core/format'
+import { fmtCompute, fmtDuration, fmtNum, fmtPercent } from '../core/format'
 import { ActionButton, Heading, optionFor } from './parts'
 import type { Ctx } from './parts'
 

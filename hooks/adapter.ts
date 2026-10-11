@@ -9,8 +9,8 @@
 import type { Snapshot } from '../core/game'
 import type { Cancel, HostPorts, Json } from '../core/ports'
 import type { GameState } from '../core/types'
-import type { UiState } from './ui/keys'
-import { INITIAL_UI } from './ui/keys'
+import type { UiState } from '../ui/keys'
+import { INITIAL_UI } from '../ui/keys'
 
 // The engine calls the adapter needs, as plain functions.
 export interface Bridge {

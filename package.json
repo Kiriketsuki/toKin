@@ -3,18 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "toKin, an incremental game shipped first as a Claude Code mod",
+  "description": "toKin, an incremental game that runs as a Claude Code mod and in a browser",
   "scripts": {
     "test": "bun test",
     "test:plugin": "claude plugin test .",
-    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p tsconfig.core.json",
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p tsconfig.core.json && tsc --noEmit -p tsconfig.web.json",
     "check:boundary": "bun scripts/check-boundary.ts",
     "sim": "bun sim/balance.ts",
     "export:content": "bun scripts/export-content.ts",
-    "types:sync": "bun scripts/sync-types.ts"
+    "types:sync": "bun scripts/sync-types.ts",
+    "web:dev": "bun web/index.html",
+    "web:build": "rm -rf build/web && bun build web/index.html --outdir build/web --minify",
+    "web:serve": "bun scripts/serve-web.ts",
+    "test:web": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "1.56.1",
     "@types/bun": "^1.3.0",
+    "preact": "10.29.8",
+    "preact-render-to-string": "6.6.1",
     "typescript": "^5.9.0"
   }
 }

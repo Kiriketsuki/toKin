@@ -1,10 +1,10 @@
 import { expect, test } from 'claude-code/testing'
 
-import type { Action, ViewModel } from '../../core/types'
-import { distillView, freshView, playingView } from './fixtures'
-import { founderAction, INITIAL_UI, reduceUi, resolveKey } from './keys'
-import type { UiState } from './keys'
-import { drawPane } from './pane'
+import type { Action, ViewModel } from '../core/types'
+import { distillView, freshView, playingView } from '../ui/fixtures'
+import { founderAction, INITIAL_UI, reduceUi, resolveKey } from '../ui/keys'
+import type { UiState } from '../ui/keys'
+import { drawPane } from '../ui/pane'
 
 const SURFACES = ['terminal', 'desktop'] as const
 

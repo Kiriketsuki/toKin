@@ -1,7 +1,9 @@
 // Checks the portability boundary. The core and the content must run in any
 // host, so they never import Claude Code, never touch its global $ API, and
-// read no wall clock and no random source of their own. The sim is a host,
-// so it may use Bun and Node, but it still never imports Claude Code.
+// read no wall clock and no random source of their own. The shared pane in
+// ui/ draws in every host, so it keeps the same rules. The sim and the
+// browser host in web/ are hosts, so they may use their own platform, but
+// they still never import Claude Code.
 //
 // Usage: bun scripts/check-boundary.ts
 // It prints each violation and exits 1 when it finds any.
@@ -25,7 +27,9 @@ type Zone = {
 export const ZONES: readonly Zone[] = [
   { dir: 'core', isStrict: true },
   { dir: 'content', isStrict: true },
+  { dir: 'ui', isStrict: true },
   { dir: 'sim', isStrict: false },
+  { dir: 'web', isStrict: false },
 ]
 
 const SOURCE = /\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/
@@ -212,7 +216,7 @@ function main(): number {
     console.error(`check-boundary: ${violations.length} violation(s).`)
     return 1
   }
-  console.log('check-boundary: core, content and sim keep to the boundary.')
+  console.log('check-boundary: core, content, ui, sim and web keep to the boundary.')
   return 0
 }
 

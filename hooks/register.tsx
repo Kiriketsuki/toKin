@@ -14,8 +14,8 @@ import { buildView } from '../core/view'
 import { createPorts, newInstanceId, paneStore, publish } from './adapter'
 import type { SyncedPorts } from './adapter'
 import type { Bridge } from './adapter'
-import { handleName, handlePress } from './controller'
-import { drawPane } from './ui/pane'
+import { handleName, handlePress } from '../ui/controller'
+import { drawPane } from '../ui/pane'
 
 // The engine interface a hook receives.
 type Host = Parameters<Hook<'session.start'>>[0]
