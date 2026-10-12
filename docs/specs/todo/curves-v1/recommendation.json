@@ -1,0 +1,569 @@
+{
+ "curves": [
+  {
+   "id": "ladder-cost",
+   "name": "Typing ladder price and press value",
+   "formula": "Tokens per press at level L = 2^L (D3). Buying level L costs ladder.baseCost x ladder.ratio^(L-1) tokens, so it takes baseCost x (ratio/2)^(L-1) presses. Total presses to level N = baseCost x ((ratio/2)^N - 1) / (ratio/2 - 1). Levels stop at ladder.capLevel (+ ladder.capPerHardwareTier for each hardware tier owned). Defaults: L1 10 tokens (10 presses), L2 30, L3 90, L4 270, L5 810, L6 2,430, L7 7,290, L8 21,870 (171 presses). Reaching L8 (256 tokens per press) takes 32,800 tokens or 492.6 presses: 82 s at 6 presses/s, 164 s at 3/s (pane), 246 s at 2/s. The 1 s tick sim buys on the next tick and shows 84, 165 and 247 s.",
+   "paramKeys": [
+    "ladder.baseCost",
+    "ladder.ratio",
+    "ladder.capLevel",
+    "ladder.capPerHardwareTier"
+   ],
+   "rationale": "All four surveys converge on base 10-15 and ratio 3. The first buy is instant (10 presses, like Cookie Clicker's 15-cookie Cursor) and the hands-only phase lasts about 1.4 min active, 2.75 min on the pane and 4 min casual. A ratio of 2 never slows, and 4 takes 8.5 min to L8, too long for an opening where the player only presses. The cap is a signpost, not a block, like the Antimatter Dimensions pre-break wall: at L8 the net design button appears (D19) and the gig board opens. The board also opens when the first net runs, so a run that skips the cap (Warm start) still gets gigs.",
+   "inspiredBy": "Cookie Clicker (geometric 1.15 building price; Cursor costs 15; click-doubler track at 100, 500 and 10,000), Antimatter Dimensions (the pre-break Infinity wall stops production and leaves one button)"
+  },
+  {
+   "id": "press-income",
+   "name": "Press income and the post-cap press share",
+   "formula": "Tokens per counted press = 2^L x LogitMult x FlowMult + press.netShare x (press-skill nodes owned) x net tokens/s. press.netShare is 0 by default, so a press pays 2^L x LogitMult. A press counts unless it is a key auto-repeat (KeyboardEvent.repeat: a held key, not a new press) or comes faster than press.maxCounted per second (40, above any human rate; 0 turns the cap off). Planning rates: active 6/s, casual 2/s (an idle player while hands are the only income, and during check-ins), pane button 3/s, and 0 between check-ins once a net runs.",
+   "paramKeys": [
+    "press.activeRate",
+    "press.casualRate",
+    "press.paneRate",
+    "press.maxCounted",
+    "press.netShare"
+   ],
+   "rationale": "Pressing is the permanent floor. It never drops to zero, and no event touches it. At the cap, 6 presses/s make 1,536 T/s: 31% of active raw income at 10 min, 21% at 20 min and under 5% after 30 min (final sim). D3 allows one manual upgrade track, so the three press-skill nodes (Touch typing, Shorthand, Dictation), each adding press.netShare of net output to every press, are off by default. If the user signs off on them, 0.02 keeps presses near 27% of active income for the whole run (draft sim). The rate cap stops macros only, so D22's 'any key press counts' holds for real typing.",
+   "inspiredBy": "Cookie Clicker (each mouse upgrade adds 1% of CpS per click; keyboard-activated clicks on the cookie are held to 3/s, and the 15/s check only unlocks the Uncanny clicker achievement, with no penalty), Clicker Heroes (click damage up to 3.5% of DPS)"
+  },
+  {
+   "id": "net-tiers",
+   "name": "Net architecture tier table",
+   "formula": "For tier i (0 = Perceptron, 1 = MLP, 2 = convolution, 3 = recurrence, 4 = attention): design = net.designCost x net.costStep^i and code = net.codeCost x net.costStep^i, both in raw-token equivalents; training work = net.trainWork x net.trainWorkStep^i MIPS-s at a fixed demand of net.trainDemand x net.trainDemandStep^i MIPS (D18); output per copy = net.copyOutput x net.copyOutputStep^i tokens/s; MIPS per copy = net.copyMips x net.copyMipsStep^i; RAM footprint = net.ramKB x net.ramStep^i KB. Code from MLP on, and design from tier net.typedDesignFromTier (Conv) on, are typed costs: code tokens (raw / conv.codeRatio) or prose tokens (raw / conv.proseRatio) from a routed converter, or raw tokens at conv.rawTypedMult (2x). Defaults: Perceptron 25k + 35k raw, 45 s at 1 MIPS, 90 T/s per copy at 0.25 MIPS, 2 KB. MLP 300k raw design + 42k code tokens (or 840k raw), 120 s at 3 MIPS, 540 T/s at 0.75 MIPS, 8 KB. Conv 360k prose + 504k code (or 7.2M + 10.1M raw), 320 s at 9 MIPS, 3,240 T/s at 2.25 MIPS, 32 KB. RNN 4.3M prose + 6.0M code, 14 min at 27 MIPS, 19,440 T/s at 6.75 MIPS, 128 KB. Attention 52M prose + 73M code, 38 min at 81 MIPS, 116,640 T/s at 20.25 MIPS, 512 KB.",
+   "paramKeys": [
+    "net.designCost",
+    "net.codeCost",
+    "net.costStep",
+    "net.trainWork",
+    "net.trainDemand",
+    "net.trainWorkStep",
+    "net.trainDemandStep",
+    "net.copyOutput",
+    "net.copyOutputStep",
+    "net.copyMips",
+    "net.copyMipsStep",
+    "net.ramKB",
+    "net.ramStep",
+    "net.typedDesignFromTier",
+    "conv.rawTypedMult"
+   ],
+   "rationale": "One closed form sets every net, so the designer tunes a few steps instead of a table. Cost x12 and output x6 per tier is the Cookie Clicker and AdCap tier shape. Output per MIPS doubles per tier (x6 output over x3 MIPS), so each architecture is mainly a compute-efficiency gain, which fits the MIPS-bound economy. The Perceptron costs 60k tokens (39 s of capped active typing) and trains in 45 s on the whole basic computer. Passive tokens start at 168 s active, 12 s under the 180 s target (the draft left 2 s), 288 s on the pane and 409 s casual. Four copies make 360 T/s, about 23% of capped active typing.",
+   "inspiredBy": "Cookie Clicker (closed-form building tiers: price x10.8-16.5 and CpS x5.4-7.3 per tier for tiers 2 to 15), AdVenture Capitalist (price x12 per tier)"
+  },
+  {
+   "id": "model-size",
+   "name": "Model size (the D9 Scale lever)",
+   "formula": "Each architecture comes in fixed sizes s = 1 to scale.maxSize (Small, Medium, Large). Size s multiplies output per copy by scale.outStep^(s-1), MIPS per copy by scale.mipsStep^(s-1), training work by scale.workStep^(s-1) and RAM footprint by scale.ramStep^(s-1). Training demand stays fixed per architecture (D18), so bigger sizes train longer. Size 1 trains on random seeds (D5). Size s >= 2 also needs scale.dataBase x scale.dataStep^(s-2) x net.ramStep^i data tokens fed into the training run. Defaults: Perceptron Medium gives x2.5 output at x2 MIPS, trains in 3 min, uses 4 KB and needs 2,000 data tokens. Large gives x6.25 output at x4 MIPS, trains in 12 min, uses 8 KB and needs 8,000 data tokens. Sizes unlock with Bigger nets I and II (research depth 2 and 4).",
+   "paramKeys": [
+    "scale.maxSize",
+    "scale.outStep",
+    "scale.mipsStep",
+    "scale.workStep",
+    "scale.ramStep",
+    "scale.dataBase",
+    "scale.dataStep",
+    "net.ramStep"
+   ],
+   "rationale": "Fills D9's Scale lever with D18's fixed sizes. Each size gives x1.25 output per MIPS, below the x2 of a new architecture, so architecture stays the main lever and size is a boost inside a tier. Training takes x4 longer per size at the same demand, which is D9's 'more compute time'. The data cost ties Scale to data gathering, which is still a brainstorm, so sizes can stay hidden until data exists. Custom sizes and the data-per-parameter sweet spot come later (D18). Not simulated.",
+   "inspiredBy": "Real scaling practice, hand-waved: bigger models want proportionally more data"
+  },
+  {
+   "id": "oversubscription",
+   "name": "Job speed under oversubscription and priorities (D16, D17)",
+   "formula": "Let C be capacity (MIPS) and D the total demand of running jobs. If D <= C, every job runs at speed 1. Otherwise the machine does W = C x (C/D)^(compute.oversubExponent - 1) MIPS of work (C^2/D at the decided exponent 2). Without queuing (D17 first stage), W is shared along the priority list: the job group at position r (0 = top) runs at s_r = min(1, k x compute.priorityWeight^(-r)), with k set so that the sum of d_r x s_r equals W. With weight 1, every job runs at (C/D)^2, exactly as in D16. The default list is training runs, then converters, then copies newest tier first; the player can reorder it. Example: training (1 MIPS) plus 4 Perceptron copies (1 MIPS) on the 1 MIPS machine give W = 0.5. Uniform, each runs at 25%. With weight 1.5, training runs at 30% and the copies at 20%. Hand queuing, or the Scheduler node (depth 3), admits jobs in list order at speed 1 while they fit; the first job that does not fit runs on what is left at (left/d)^2, and the lower jobs wait. The Scheduler applies that same queue automatically to every job that does not fit. D16 table: 1.25x demand gives 64% per job and 80% of the machine; 1.5x gives 44% and 67%; 2x gives 25% and 50%; 3x gives 11% and 33%. A training run larger than the whole machine runs at (C/d)^2, never at zero.",
+   "paramKeys": [
+    "compute.startMips",
+    "compute.oversubExponent",
+    "compute.priorityWeight"
+   ],
+   "rationale": "D16 sets the curve and D17 sets the two stages. Priorities only move the slowdown between jobs. Total work stays C^2/D, so only queuing (by hand or with the Scheduler) removes the penalty, as D17 says. Because total work falls as demand grows, a copy bought past capacity lowers output for an idle player. Copies are therefore limited by MIPS, and the copy price ratio can stay gentle. The UI should show effective throughput next to raw MIPS. Every speed stays above zero, so no state stalls. The sim's idle bot rarely oversubscribes, so the weight moves its milestones by under 1%. It matters for players who overbuy.",
+   "inspiredBy": "Universal Paperclips (power shortfall: performance = supply/demand once batteries are empty, a linear version of the same idea); toKin D16 and D17"
+  },
+  {
+   "id": "copy-cost",
+   "name": "Copy price per net",
+   "formula": "The first copy comes with training. Copy n (n >= 2) of tier i costs copy.baseCost x net.costStep^i x r_i^(n-2) tokens, where r_i = max(copy.ratioFloor, copy.ratio - copy.ratioStepDown x i). Default r: Perceptron 1.12, MLP 1.11, Conv 1.10, RNN 1.09, Attention 1.08 (floor 1.07). Perceptron copies: copy 2 4,000; copy 10 9,904; copy 25 54,209; copy 50 921,563; copies 2-25 total 473k. Buy x10 and buy max use Pecorella's closed forms: the cost of m more with k owned = b x r^k x (r^m - 1)/(r - 1); max = floor(log_r(c x (r-1)/(b x r^k) + 1)).",
+   "paramKeys": [
+    "copy.baseCost",
+    "copy.ratio",
+    "copy.ratioStepDown",
+    "copy.ratioFloor",
+    "net.costStep"
+   ],
+   "rationale": "Copies already face two other brakes (MIPS under D16, and dedup), so the ratio is 1.12 instead of Cookie Clicker's 1.15. The price doubles every 6.1 copies instead of every 5. Newer nets get a gentler ratio, as AdCap lowers its coefficient from 1.15 to 1.07 up the tiers, so late nets keep scaling for more copies.",
+   "inspiredBy": "Cookie Clicker (geometric 1.15), AdVenture Capitalist (coefficient falls with tier, Newspaper 1.15 to Oil 1.07), Pecorella 'Math of Idle Games' Part I (bulk-buy and buy-max formulas)"
+  },
+  {
+   "id": "dedup",
+   "name": "Copies repeat (seed space) and dedup",
+   "formula": "Each net has a seed space S, which starts at dedup.seeds. Unique copies u(n) = S x (1 - (1 - 1/S)^n). The 'copies start to repeat' event fires at n_e, the first copy count where u(n)/n < dedup.threshold. With dedup.handWave = 1 (D5: overlap is hand-waved until the event), effective copies = n below n_e. From n_e on, effective copies = max(dedup.floor x n, (n_e - 1) + u(n) - u(n_e - 1)): copies already owned keep full value, and only new copies lose their overlap. With handWave = 0, effective copies = max(floor x n, u(n)) from copy 2 on. Dedup costs dedup.costMult x the net's next copy cost, x research.cleaning if Data cleaning is owned. Paying sets S = S x dedup.seedGrowth, multiplies that net's output by dedup.bonus for the run, and restores full value to every owned copy until the next event. With 16 seeds, threshold 0.9 and doubling, events fall at copies 5, 8, 15, 29, 56, 111 and 221. The x1.3 bonus compounds to x2.86 after 4 dedups.",
+   "paramKeys": [
+    "dedup.seeds",
+    "dedup.threshold",
+    "dedup.costMult",
+    "dedup.seedGrowth",
+    "dedup.bonus",
+    "dedup.floor",
+    "dedup.handWave",
+    "research.cleaning"
+   ],
+   "rationale": "Repeats come from the copy count through birthday math, not from a timer, and the event falls on a near-doubling schedule. The hand-wave rule keeps D5's wording (no overlap until the event) and still never lowers output: effective copies only grow with n, and the floor caps the loss at 50%. At x1.5 the bonus reached x5.06 by copy 29. At x1.3, an old Perceptron with 4 dedups earns 1,028 T/s per MIPS, close to a fresh MLP's 900 with its edge, and the MLP passes it at its first dedup (1,170). Use 1.25 to keep the old net below a fresh tier. Later, data tokens raise S instead of random seeds (D5, see data.tokensPerSeed).",
+   "inspiredBy": "Birthday problem; Antimatter Dimensions (Dimension Boost, a gate that pays x2); Cookie Clicker (tiered upgrades unlock at 1, 5, 25, 50 and 100 owned) and AdVenture Capitalist (automatic milestones at 25, 50 and 100); Kittens Game (happiness floored at 25%)"
+  },
+  {
+   "id": "gig-tiers",
+   "name": "Gig tier table",
+   "formula": "Tier k (1-based): tokens = gig.tokens x gig.tokensStep^(k-1); pay = gig.pay x gig.payStep^(k-1) x marketMult x LogitMult; a new offer every gig.interval x gig.intervalStep^(k-1) s; deadline = gig.deadline x gig.deadlineStep^(k-1) s after accepting. The board opens at the ladder cap or when the first net runs, whichever comes first (gig.openOnNet). Tier 1 opens with the board and has no income gate (gig.tier1Gate = 0). Tier k >= 2 opens when token income >= gig.unlockSlack x tokens/deadline, and tier 4 and up also need Citations >= gig.citeGate x gig.citeGateStep^(k-4). Every gate is sticky: once open, a tier stays open for the run. The board holds gig.boardSize offers per tier, each waiting gig.offerLife s. Accepting a gig the pool covers delivers it at once. At most gig.maxOpen accepted gigs can wait to be filled, and they draw from the pool. A missed deadline pays nothing and refunds gig.failRefund of the tokens delivered. From tier gig.typedFromTier on, gig.typedShare of the tokens must arrive as the gig's type (prose, or code for the payroll program) or as raw tokens at conv.rawTypedMult. Defaults: 1 newspaper classifieds 8,000 T, $12, every 20 s, 60 s deadline, no gate; 2 licence plates for the police 64k, $72, 30 s, 90 s, opens at 1,067 T/s; 3 letters for the bank 512k (128k of it as 12.8k prose), $432, 45 s, 135 s, 5,689 T/s; 4 town census 4.1M, $2,592, 68 s, 203 s, 30k T/s and 25 Citations; 5 university translation 33M, $15,552, 101 s, 304 s, 162k T/s and 150 C; 6 mill payroll program 262M, $93,312, 152 s, 456 s, 863k T/s and 900 C. The money ceiling per tier is 0.6, 2.4, 9.6, 38, 154 and 614 $/s.",
+   "paramKeys": [
+    "gig.tokens",
+    "gig.tokensStep",
+    "gig.pay",
+    "gig.payStep",
+    "gig.interval",
+    "gig.intervalStep",
+    "gig.deadline",
+    "gig.deadlineStep",
+    "gig.unlockSlack",
+    "gig.tier1Gate",
+    "gig.openOnNet",
+    "gig.citeGate",
+    "gig.citeGateStep",
+    "gig.offerLife",
+    "gig.boardSize",
+    "gig.maxOpen",
+    "gig.failRefund",
+    "gig.typedFromTier",
+    "gig.typedShare"
+   ],
+   "rationale": "Offer intervals cap money per second the way AdCap cycle times do, so hardware pacing is directly tunable, and each tier lifts the ceiling x4. Deadlines are generous, and failure never locks (the Clicker Heroes boss timer). The draft's 267 T/s gate on tier 1 sat above the 218 T/s that a non-pressing player's 4 Perceptron copies earned, and the sim showed it locks a strict idle player out of money for 6 h. Tier 1 is now unconditional and gates are sticky. Slack 1.5 opens tier 2 at 1,067 T/s instead of 1,422. A board of 8 lets a 10-min check-in collect about 1.1 $/s from tiers 1 and 2, against 3 $/s for an always-present player; the draft's gap was 7x. gig.maxOpen limits the trap where accepted gigs drain the pool before copies and nets. Citations gate tiers 4 and up (D10: reputation unlocks better clients). $ per token falls x0.75 per tier on purpose; set payStep = tokensStep (8) if that reads oddly.",
+   "inspiredBy": "AdVenture Capitalist (business table: cost x12 per tier; cycle times step x5, x2, x2, x2, x4, x4, x4, x4, x6, so toKin's x1.5 is gentler), Clicker Heroes (30 s boss timer that never locks), Kittens Game (60 s Observe window)"
+  },
+  {
+   "id": "grants",
+   "name": "Grants from Citations (D10)",
+   "formula": "Grant n is awarded automatically, once per run, when Citations reach grant.citeGate x grant.citeStep^(n-1): 10, 40, 160, 640, 2,560. It pays grant.pay x grant.payStep^(n-1) x LogitMult dollars: $500, $3,000, $18,000, $108,000, $648,000.",
+   "paramKeys": [
+    "grant.citeGate",
+    "grant.citeStep",
+    "grant.pay",
+    "grant.payStep"
+   ],
+   "rationale": "Fills D10's grants. A depth 1 paper earns 3 Citations per minute, so the first grant lands about 200 s after the first paper (1,773 s active, 4,046 s casual in the sim). Grants are money that does not need the gig board, which helps idle players, whose money the board caps, and the player who never takes a gig: in the probe, the first grant buys the 8 KB RAM and the MLP trains at 2,591 s, where the draft never trained it. Grants are one-off, so gigs stay the main money source.",
+   "inspiredBy": "Universal Paperclips (Trust awarded at clip milestones)"
+  },
+  {
+   "id": "hardware",
+   "name": "Hardware (MIPS) price",
+   "formula": "The unit price of hardware tier k = hw.baseCost x hw.tierPrice^(k-1) x hw.unitRatio^owned_k dollars. Each unit adds hw.baseMips x hw.tierMips^(k-1) MIPS. Defaults: 1 maths co-processor $60, +0.5 MIPS ($120/MIPS); 2 faster CPU $702, +3 ($234/MIPS); 3 second CPU board, for more cores (D15), $8,213, +18 ($456/MIPS); 4 extra machine $96k, +108 ($890/MIPS); 5 minicomputer $1.12M, +648 ($1,735/MIPS); 6 mainframe time $13.2M, +3,888 ($3,383/MIPS). Selling refunds hw.sellBack of the price. The basic computer cannot be sold.",
+   "paramKeys": [
+    "hw.baseCost",
+    "hw.baseMips",
+    "hw.tierPrice",
+    "hw.tierMips",
+    "hw.unitRatio",
+    "hw.sellBack",
+    "compute.startMips"
+   ],
+   "rationale": "Price x11.7 and MIPS x6 per tier doubles the dollars per MIPS each tier, the payback step of Cookie Clicker's early buildings and AdCap's tiers. The unit ratio of 1.15 is Cookie Clicker's. A 25% sell-back undoes a bad buy at a loss, which helps the no-soft-lock rule. The second CPU board gives D15's 'more cores' its own item. Real CPUs did not climb evenly: the 8086 (0.33 MIPS) was slower than the Z80 (0.58), the 68000 to the 386DX is only x1.5, and the 486DX to the Pentium is x21.6. So toKin uses a smooth x6 per tier for pacing and borrows only names from a loose 19xx garage ladder.",
+   "inspiredBy": "Cookie Clicker (1.15 unit ratio, 25% sell refund), AdVenture Capitalist (payback steps per tier); historical MIPS table for names only"
+  },
+  {
+   "id": "ram",
+   "name": "RAM capacity",
+   "formula": "RAM = ram.startKB x 2^(upgrades) KB. Upgrade j costs ram.baseCost x ram.ratio^(j-1) dollars: 8 KB $100, 16 KB $300, 32 KB $900, 64 KB $2,700, 128 KB $8,100, 256 KB $24,300, 512 KB $72,900. A net can load only if its footprint (x the size factor) fits in RAM.",
+   "paramKeys": [
+    "ram.startKB",
+    "ram.baseCost",
+    "ram.ratio",
+    "net.ramKB",
+    "net.ramStep"
+   ],
+   "rationale": "RAM caps the largest net, not the copy count (D15), the way Paperclips memory caps operations while processors set the rate. Capacity items carry steep ratios in Kittens (barn 1.75, hut 2.5). With footprints x4 per tier and RAM x2 per buy, each new architecture needs two RAM buys, a cheap, clear gate that money always reaches. The draft's mid-game RAM stall (saving for 512 KB at 24 MIPS) is gone with the final set: the active sim starts Attention training at 74 min.",
+   "inspiredBy": "Universal Paperclips (operations capped at memory x 1,000), Kittens Game (steep capacity ratios)"
+  },
+  {
+   "id": "overclock",
+   "name": "Overclock and crashes",
+   "formula": "Overclock level j multiplies MIPS by 1 + oc.mipsPerLevel x j, up to oc.maxLevel. Level j costs oc.baseCost x oc.costRatio^(j-1) dollars: $200, $600, $1,800, $5,400, $16,200. While overclocked, the crash chance per minute = oc.crashPerMin x j^2: L1 0.5% (mean 200 min), L2 2% (50 min), L3 4.5% (22 min), L5 12.5% (8 min). A crash pauses every job for oc.rebootSeconds and costs the running training job min(oc.trainLossShare of its progress, oc.trainLossCap seconds of its work). Offline time runs at stock clock with no crashes.",
+   "paramKeys": [
+    "oc.baseCost",
+    "oc.costRatio",
+    "oc.mipsPerLevel",
+    "oc.maxLevel",
+    "oc.crashPerMin",
+    "oc.rebootSeconds",
+    "oc.trainLossShare",
+    "oc.trainLossCap"
+   ],
+   "rationale": "A risk dial with a quadratic hazard: low levels are nearly free and high levels need attention, which makes overclock an active-only boost (D15). The loss is capped two ways, as Cookie Clicker's Ruin is, and hardware is never lost. Running at stock clock offline keeps negative events away from an absent player.",
+   "inspiredBy": "Cookie Clicker (Ruin: loss capped by both bank share and minutes of CpS), A Dark Room (Hut Fire only once the population passes 50)"
+  },
+  {
+   "id": "converters",
+   "name": "Pipeline converters",
+   "formula": "Each converter is a job asking conv.mips MIPS. At speed s it takes conv.inputRate x s raw tokens/s from the pool and makes (conv.inputRate x s / ratio) x LogitMult specialised tokens/s, with ratio = conv.proseRatio (10), conv.codeRatio (10) or conv.researchRatio (25). That is 100 prose/s, 100 code/s or 40 research/s per converter. Converter n of a kind costs conv.baseCost x conv.costRatio^(owned of that kind) raw tokens. Converters unlock at conv.unlockRunTokens tokens made in this run, not lifetime tokens across Distills. The Transformer (depth 7, later era) is one converter for every type: it can be re-routed to any sink without a rebuild, at conv.transformerRatio x the narrow ratio (5 raw per prose or code token, 12.5 per research token), and it asks conv.transformerMips MIPS. Routing, budget and raw fallback are in pipeline-routing.",
+   "paramKeys": [
+    "conv.unlockRunTokens",
+    "conv.baseCost",
+    "conv.costRatio",
+    "conv.inputRate",
+    "conv.mips",
+    "conv.proseRatio",
+    "conv.codeRatio",
+    "conv.researchRatio",
+    "conv.transformerRatio",
+    "conv.transformerMips"
+   ],
+   "rationale": "Converters compete with copies for MIPS, so the pipeline layer is a real allocation choice (D8). Ratios are steep and lossy, like Kittens crafting. At unlock (427 s active, 30 min casual idle), 1,000 raw/s is a felt but affordable share of income. Counting this run's tokens matters: core/distill.ts keeps lifetimeTokens across runs, and that number would open converters at t = 0 in run 2. The Transformer halves the loss and removes the rebuild, which is D8's 'converter for every type'. At 4 MIPS it stays a late, big job.",
+   "inspiredBy": "Kittens Game (craft chain with steep lossy ratios; converters run partly when inputs are short), Evolve (factory lines moved between recipes), Idle Miner Tycoon (throughput set by the slowest stage)"
+  },
+  {
+   "id": "pipeline-routing",
+   "name": "Pipeline routing, budget and typed demand (D8)",
+   "formula": "Specialised tokens never enter the pool. Each converter is routed to one sink: the next node in the player's research queue, the paper being written, the typed part of a net's design or code, or the typed part of an accepted gig. A sink is a progress bar of the specialised tokens it needs (a node needs 16k research, a paper 50k prose, and so on), so these costs are sink sizes, not stock prices. When a sink fills, the converter moves to the next sink of its type in queue order. If there is none, its output fills a buffer of pipe.bufferSeconds of that converter's output, and then the converter stalls: it draws no raw tokens and frees its MIPS until the player routes it. All converters together draw at most pipe.budgetShare of raw income. Above that they all slow in proportion, so the pool always keeps at least 40% of income. Typed demand: code from MLP on, design from tier net.typedDesignFromTier (Conv) on, and gig.typedShare of each gig from tier gig.typedFromTier (letters for the bank) on. Any typed cost except research nodes and papers can also be paid in raw tokens at conv.rawTypedMult x its raw equivalent (typed amount x ratio).",
+   "paramKeys": [
+    "pipe.budgetShare",
+    "pipe.bufferSeconds",
+    "conv.rawTypedMult",
+    "net.typedDesignFromTier",
+    "gig.typedFromTier",
+    "gig.typedShare"
+   ],
+   "rationale": "D8 says specialised tokens exist only inside pipelines, so they never get a pool; every typed cost is a sink the pipe fills. Pipelines now feed every consumer D8 names: research, papers, net code, net design (from Conv) and gigs (from tier 3), and everything stays raw before converters, as D8 asks. The 2x raw fallback means a code converter halves the raw cost of code (in the draft it saved nothing), and a missing, starved or sold converter never blocks a purchase. The budget removes the sim's drain lock, where converters drawing the whole income kept the pool at 0. The active premium from pipeline management becomes concrete: re-routing stalled converters, keeping the research queue full and balancing kinds. An idle player loses up to one check-in interval per stall, and a long research queue softens that. In the sim, a player who builds a code converter trains later nets sooner and reaches 1.3G run tokens by 90 min against 17G without one, so the raw path remains the faster default for the greedy bot.",
+   "inspiredBy": "Kittens Game (converters run partly when inputs are short), Evolve (factory lines re-assigned between recipes)"
+  },
+  {
+   "id": "research-cost",
+   "name": "Research node price by depth",
+   "formula": "A node at depth d costs research.baseCost x research.depthRatio^(d-1) research tokens, filled as a sink by research converters: d1 16,000, d2 40,000, d3 100,000, d4 250,000, d5 625,000, d6 1.56M, d7 3.91M. Era 1 placement (AI results, which can be published, marked *): d1 Multi-layer net*, Write it up (opens papers), [Touch typing]; d2 Backprop*, Data cleaning*, Bigger nets I* (Scale, needs data), [Shorthand]; d3 Convolution*, Vectorised maths*, Scheduler (D17); d4 Dropout*, Recurrence*, Synthetic data*, Bigger nets II*, [Dictation]; d5 Attention*; d6 GPU programming (opens GPUs); d7 Transformer* (later era). The bracketed press nodes wait on the D3 sign-off. Skill and systems nodes (Write it up, Scheduler, GPU programming and the press nodes) cannot be published.",
+   "paramKeys": [
+    "research.baseCost",
+    "research.depthRatio"
+   ],
+   "rationale": "One geometric step per depth keeps the tree readable while it sprawls. A depth 1 node takes 400 s of one research converter, so the MLP lands at 819 s active and 48 min casual. Doubling the draft's 8,000, together with the paper raise, moves a paper-rushing active Distill unlock from 23 min to 31 min, inside the current 30 to 45 min window. Research takes no compute (D14); the converters' MIPS limit it.",
+   "inspiredBy": "Universal Paperclips (project costs gated by a capped resource). One fixed depth ratio is toKin's simplification: Cookie Clicker's tiered upgrade prices step unevenly (x5, x10, x100, x100, x100, then x1000)."
+  },
+  {
+   "id": "technique-mults",
+   "name": "Technique multipliers and first-mover edges",
+   "formula": "Backprop: all net output x research.backprop (2). Dropout: x research.dropout (1.5). Vectorised maths: MIPS per copy x research.vectorised (0.7). Data cleaning: dedup cost and the synthetic bad-data chance x research.cleaning (0.5). First-mover edges: each new architecture gives its own net +research.archEdge (25%) output, and each technique result (Backprop, Dropout, Vectorised maths, Data cleaning, Synthetic data, Bigger nets I and II) gives all nets +research.techEdge (10%). Edges add. Publishing a result exposes its edge to the rival event; unpublished results keep their full edge.",
+   "paramKeys": [
+    "research.backprop",
+    "research.dropout",
+    "research.vectorised",
+    "research.cleaning",
+    "research.archEdge",
+    "research.techEdge"
+   ],
+   "rationale": "Fixed multipliers close the gaps that exponential copy costs open (AdCap x3, Cookie Clicker x2). Technique edges give D10's 'the edge from that research fades' something to fade for every paper, not only architecture papers, so publishing is a real choice for every AI result.",
+   "inspiredBy": "AdVenture Capitalist (x3 cash upgrades), Cookie Clicker (x2 tiered upgrades)"
+  },
+  {
+   "id": "papers-citations",
+   "name": "Paper cost and Citations",
+   "formula": "Paper k costs paper.baseCost x paper.costRatio^(k-1) prose tokens (50k, 125k, 312k, 781k, 1.95M), filled as a sink by prose converters, and needs one unpublished AI result (an architecture or technique node). A paper on a depth-d result earns cite.base x cite.depthStep^(d-1) x (cite.floor + (1 - cite.floor) x 2^(-age/cite.halfLife)) Citations/s. Defaults: a depth 1 paper earns 3 per minute at first, decaying toward 1.5 per minute with a 20 min half-life. The first paper starts the Distill unlock timer (D23).",
+   "paramKeys": [
+    "paper.baseCost",
+    "paper.costRatio",
+    "cite.base",
+    "cite.depthStep",
+    "cite.halfLife",
+    "cite.floor"
+   ],
+   "rationale": "Paper 1 is 500 s of one prose converter, so it lands at 26 min active and 64 min casual. Citations are a slow stock that gates gig tiers 4 to 6 and pays grants. Decay toward a floor rewards new papers but never takes anything away, and deeper results are worth more. Limiting papers to AI results makes every paper a 'paper on AI', which settles which paper starts Distill.",
+   "inspiredBy": "Universal Paperclips (Trust: a slow standing currency earned at milestones that unlocks projects), Cookie Clicker (wrinklers: patience pays in a lump)"
+  },
+  {
+   "id": "event-timer",
+   "name": "Pseudorandom event timer",
+   "formula": "When an event is scheduled, its fire time is sampled once from the per-second hazard P(fire this second) = ((t - Tmin)/(Tmax - Tmin))^k, certain at Tmax, using a seeded RNG stream per event type that is stored in the save. Publishing costs: pubEvent.tmin 120 s, pubEvent.tmax 360 s and k 5 give a mean of 4.0 min, with 80% between 3.5 and 4.5 min. Inspiration: insp.tmin 240, insp.tmax 720 and k 5 give a mean of 7.6 min (6.7 to 8.4 min).",
+   "paramKeys": [
+    "pubEvent.tmin",
+    "pubEvent.tmax",
+    "pubEvent.exponent",
+    "insp.tmin",
+    "insp.tmax",
+    "insp.exponent"
+   ],
+   "rationale": "Cookie Clicker's golden-cookie timer: a guaranteed quiet spell, then near-certain arrival, so events feel random but come on a learnable beat (D20, the user's 'like golden cookies'). Defining the hazard per second and sampling once at schedule time makes pacing independent of frame rate and offline chunking; the same formula checked per frame at 30 fps has a 7.4 min mean, but 9.3 min when checked once per second. Per-type seeded streams mean a reload, or a switch between browser and pane, cannot re-roll an outcome.",
+   "inspiredBy": "Cookie Clicker (golden cookie spawn hazard ((t-Tmin)/(Tmax-Tmin))^5, Tmin 5 min, Tmax 15 min, mean 7.44 min), Realm Grinder (some RNG streams persist in the save)"
+  },
+  {
+   "id": "publishing-costs",
+   "name": "Market and rival cost sizes",
+   "formula": "Each paper schedules exactly one 'market catches up' and one 'rival adopts your method'. Market: marketMult = max(pubEvent.marketFloor, marketMult x (1 - pubEvent.marketDrop)), applied to all gig and contract pay. Rival: the published result's edge b becomes max(pubEvent.edgeFloor x b0, b x (1 - pubEvent.rivalFade)), where b0 is its original edge; this applies to architecture and technique edges alike. Defaults: -4% pay per paper, floor 70%. An edge loses 25% of what remains, floor 50%: +25% becomes +18.75%, and +10% becomes +7.5%.",
+   "paramKeys": [
+    "pubEvent.marketDrop",
+    "pubEvent.marketFloor",
+    "pubEvent.rivalFade",
+    "pubEvent.edgeFloor"
+   ],
+   "rationale": "Two events per paper bound the total cost of a paper and make it known in advance. Both costs have floors, as Cookie Clicker caps Ruin. Grants and the Citation gig tiers (x4 money per tier) outweigh a 4% pay drop, so publishing always nets positive.",
+   "inspiredBy": "Cookie Clicker (Ruin and Clot: bounded losses), Universal Paperclips (wire price base decays toward a floor)"
+  },
+  {
+   "id": "inspiration",
+   "name": "Inspiration (positive golden-style events)",
+   "formula": "One at a time on the event timer. Visible for insp.lifetime s, as a click target in the browser or a button line in the pane. Effect pool and weights: Breakthrough 40% (net output x insp.breakthroughMult for insp.breakthroughSeconds); Professor's notes 30% (+min(insp.notesPoolShare x pool, insp.notesIncomeSeconds x token income)); Flow 15% (press tokens x insp.flowMult for insp.flowSeconds); Rush order 15%, once gigs exist (a gig at x insp.rushPayMult pay); Hot topic 10%, once a paper exists (Citations x insp.hotTopicMult for insp.hotTopicSeconds). The last effect is removed from the pool with chance insp.antiRepeat. Never fires offline, and buffs never count in offline catch-up.",
+   "paramKeys": [
+    "insp.lifetime",
+    "insp.antiRepeat",
+    "insp.breakthroughMult",
+    "insp.breakthroughSeconds",
+    "insp.notesPoolShare",
+    "insp.notesIncomeSeconds",
+    "insp.flowMult",
+    "insp.flowSeconds",
+    "insp.rushPayMult",
+    "insp.hotTopicMult",
+    "insp.hotTopicSeconds"
+   ],
+   "rationale": "Gives active play a reason to watch the tab, with optional upside only; missing one costs nothing. Caught every time, it saves about 10 s before Distill unlock (+1 Logit) and gives about +20% to +30% speed to 1e8 and 1e9 run tokens. That is smaller than Cookie Clicker's late game, so idle play stays a real choice. Flow is a timed buff, not a second press-upgrade track. Not required by the decisions; offered for the active premium.",
+   "inspiredBy": "Cookie Clicker (Frenzy x7 for 77 s, Lucky +min(15% of bank, 15 min of CpS), 80% anti-repeat, buffs kept out of offline CpS)"
+  },
+  {
+   "id": "distill",
+   "name": "Distill payout and Logit bonus",
+   "formula": "Logits paid = floor(distill.k x (lifetimeTokens / distill.t0)^distill.exponent) - logitsEarned, with lifetimeTokens counted across all runs, as in core/distill.ts. Production multiplier = 1 + distill.bonusPerLogit x logitsEarned, on raw tokens, press tokens, specialised tokens and money. Unlock time = first AI paper + distill.unlockDelay. Defaults: the ladder alone (32,800 tokens) pays 0 Logits; 15 at 1.8e7, 21 at 3.6e7, 22 at 4.05e7, 30 at 7.2e7, 35 at 1e8 and 79 at 5e8.",
+   "paramKeys": [
+    "distill.unlockDelay",
+    "distill.k",
+    "distill.t0",
+    "distill.exponent",
+    "distill.bonusPerLogit",
+    "distill.firstNodeCost"
+   ],
+   "rationale": "See prestige. A square root on lifetime tokens with the subtract-earned rule (AdCap, and today's core/distill.ts) needs 4x the tokens to double the payout, and any reset after growth pays something. t0 comes from the final sim's run tokens at unlock (13M to 29M across profiles), so the first Distill pays 12 to 19 Logits. Spending Logits never lowers the bonus, so the next run can never come out weaker.",
+   "inspiredBy": "AdVenture Capitalist (150 x sqrt(lifetime/1e15) minus angels already earned), Realm Grinder (square root, 4x to double), Cookie Clicker (spending heavenly chips never lowers the prestige bonus; Legacy costs 1 chip)"
+  },
+  {
+   "id": "offline",
+   "name": "Offline catch-up",
+   "formula": "Away time is simulated from wall-clock timestamps at offline.rate x the idle rate, up to offline.capHours. There are no presses, no overclock, no events, no crashes and no Inspiration. Accepted gig deadlines pause and no offers spawn. Grants still arrive at their Citation thresholds. Oversubscription (D16) and the priority list apply unless the Scheduler is owned.",
+   "paramKeys": [
+    "offline.rate",
+    "offline.capHours"
+   ],
+   "rationale": "The idle rate already carries the idle penalties (no presses, the D16 slowdown), so a further cut would count them twice. Kittens Game runs offline time at full rate, up to 10 game years (about 2.2 h, or 40 years with paragon), and skips only catnip deficits. toKin goes further and runs no negative events offline at all, which is its own rule. Pecorella called Egg, Inc.'s 2 h offline cap a mistake that made him churn (2016; the game now allows up to about 30 h). toKin's current cap is that same 2 h, so 8 h is recommended. Timestamps matter because browsers throttle background tabs.",
+   "inspiredBy": "Kittens Game (redshift: full rate, only catnip deficits skipped), Pecorella GDC Europe 2016 (Egg, Inc. offline-cap critique), Cookie Clicker (timed buffs excluded from offline CpS)"
+  },
+  {
+   "id": "data-brainstorm",
+   "name": "Data gathering (brainstorm placeholders)",
+   "formula": "Manual scraping and copy-pasting: a job at data.scrapeMips MIPS that takes data.scrapeInput raw tokens/s and makes 1 data token per data.scrapeRatio raw tokens (25 data/s by default), with no risk. Synthetic generator: a job at data.synthMips MIPS that takes conv.inputRate raw tokens/s at data.synthRatio raw per data token (250 data/s). A training run whose data share s is synthetic comes out bad with chance data.synthBadChance x s^2, x research.cleaning if Data cleaning is owned. A bad model runs at data.badModelMult output until retrained, which costs data.retrainShare of the training work and no tokens. Fed data raises a net's seed space: S += data / (data.tokensPerSeed x net.ramStep^i), and sizes 2 and up need data to train (model-size). Later, an agentic net's copy can be set to scrape: it then makes data.agentShare x its token output as data tokens instead of raw tokens. Book and manuscript scanning is bought with money: batch n costs data.scanCost x data.scanRatio^(n-1) dollars ($5,000, $7,500, $11,250) and adds data.scanSeeds to every net's seed space for the run.",
+   "paramKeys": [
+    "data.scrapeRatio",
+    "data.scrapeInput",
+    "data.scrapeMips",
+    "data.synthRatio",
+    "data.synthMips",
+    "data.synthBadChance",
+    "data.badModelMult",
+    "data.retrainShare",
+    "data.tokensPerSeed",
+    "data.agentShare",
+    "data.scanCost",
+    "data.scanRatio",
+    "data.scanSeeds",
+    "research.cleaning"
+   ],
+   "rationale": "Follows the user's brainstorm. Scraping is safe but slow (20:1). Synthetic data is 5x cheaper, but its risk grows with the square of its share: a small batch has good expected value, and an all-synthetic run is a gamble. Agentic scraping is 4x better than manual (5 output tokens per data token), and scanning turns late money into seed space, a second use for money. The bad model is a recoverable malus, not a loss. Data cleaning halves both the bad chance and the dedup cost, so the cleaning branch grows out of the event. Not simulated.",
+   "inspiredBy": "Cookie Clicker (Clot: output x0.5, recoverable), A Dark Room (Mysterious Wanderer: 100 wood has a 50% chance of 300 back, 500 wood a 30% chance of 1,500)"
+  }
+ ],
+ "pacingTargets": [
+  {
+   "milestone": "First typing level (L1, 10 presses)",
+   "activeSeconds": 1,
+   "idleSeconds": 4,
+   "rationale": "Every surveyed game makes the first purchase near-instant (Cookie Clicker Cursor 15 cookies, AdCap second stand $4). Idle here and below is the casual profile: 2 presses/s while hands are the only income, then 60 s check-ins every 10 min with presses. Sim medians over 5 seeds."
+  },
+  {
+   "milestone": "Typing ladder cap: L8, 256 tokens per press. Net design and the gig board unlock (D19)",
+   "activeSeconds": 84,
+   "idleSeconds": 247,
+   "rationale": "492.6 presses: 82 s at 6/s and 246 s at 2/s in closed form; the 1 s tick sim adds one tick per buy. 165 s on the pane at 3/s. Accept 60 to 120 s active."
+  },
+  {
+   "milestone": "First net training starts",
+   "activeSeconds": 123,
+   "idleSeconds": 364,
+   "rationale": "Design and code cost 60k tokens: 39 s at the capped active rate, 78 s on the pane, 117 s casual."
+  },
+  {
+   "milestone": "First net trained: passive tokens begin",
+   "activeSeconds": 168,
+   "idleSeconds": 409,
+   "rationale": "12 s under the current first-agent target of 180 s (the draft left 2 s), so menu clicks in a real UI still fit. 288 s on the pane. Accept up to 240 s active and 8 min idle."
+  },
+  {
+   "milestone": "First hardware purchase",
+   "activeSeconds": 166,
+   "idleSeconds": 721,
+   "rationale": "Tier 1 and 2 gigs open at the cap for an active player, so the $60 co-processor comes almost at once. Idle needs one check-in: 841 s strict, 553 s with 5-min check-ins."
+  },
+  {
+   "milestone": "First 'copies repeat' event (copy 5 at 16 seeds)",
+   "activeSeconds": 169,
+   "idleSeconds": 1201,
+   "rationale": "Lands when the player first goes past the basic machine's 4 copies, which teaches dedup right after hardware. The idle bot buys copies only into free MIPS, so its event waits for hardware."
+  },
+  {
+   "milestone": "Converters unlock (1M tokens this run)",
+   "activeSeconds": 427,
+   "idleSeconds": 1787,
+   "rationale": "The pipeline layer arrives mid-game (D8) at about 7 min active and 30 min casual (32 min strict, 24 min with 5-min check-ins)."
+  },
+  {
+   "milestone": "Multi-layer net researched",
+   "activeSeconds": 819,
+   "idleSeconds": 2880,
+   "rationale": "The first node takes 400 s of one research converter, plus the converter build-up."
+  },
+  {
+   "milestone": "Multi-layer net trained",
+   "activeSeconds": 1140,
+   "idleSeconds": 3600,
+   "rationale": "Needs 8 KB RAM ($100), 300k design tokens, 840k raw for code (or 42k code tokens) and 120 s at 3 MIPS."
+  },
+  {
+   "milestone": "First AI paper published",
+   "activeSeconds": 1567,
+   "idleSeconds": 3840,
+   "rationale": "Needs Write it up, a prose converter and a 50k prose paper on an AI result. Idle times step in 10 min chunks because the bot checks in every 10 min."
+  },
+  {
+   "milestone": "First grant (10 Citations, $500)",
+   "activeSeconds": 1773,
+   "idleSeconds": 4046,
+   "rationale": "About 200 s after the first depth 1 paper at 3 Citations per minute."
+  },
+  {
+   "milestone": "Distill unlocks (first paper + 300 s)",
+   "activeSeconds": 1867,
+   "idleSeconds": 4140,
+   "rationale": "Inside the current 30 to 45 min distillation window (sim/balance.ts), 67 s above its lower edge. Payout 17 Logits active, 19 on the pane (2,301 s), 12 casual. Idle is 2.22x slower casual, 2.54x strict (4,740 s) and 1.83x with 5-min check-ins (3,420 s): inside the 1.5x to 3x active premium target. A naive idle player who oversubscribes takes 6,060 s (3.25x), the D16 trap that queuing and the Scheduler remove."
+  },
+  {
+   "milestone": "Suggested first Distill at 2.25x run tokens (+50% Logits)",
+   "activeSeconds": 2158,
+   "idleSeconds": 4887,
+   "rationale": "Pecorella's GDC Europe 2016 rule of thumb: players reset at +50% to +200%. Under a square root, +50% needs 2.25x lifetime. The sim pays 25 Logits active and 19 casual."
+  },
+  {
+   "milestone": "Run 2 first paper (Muscle memory and Warm start, payout from run 1)",
+   "activeSeconds": 665,
+   "idleSeconds": 2640,
+   "rationale": "Active is 2.36x faster than run 1 (the existing target is 2x), the pane 2.72x. Idle profiles gain only 1.4x to 1.6x because every converter, node and paper waits for a check-in; that is the decision-bound limit of check-in play, not a payout problem."
+  }
+ ],
+ "events": [
+  {
+   "name": "Market catches up",
+   "mechanism": "Each paper schedules one. The gig and contract pay multiplier becomes max(pubEvent.marketFloor, mult x (1 - pubEvent.marketDrop)). Drawn from its own seeded RNG stream.",
+   "timing": "The fire time is sampled once at publish from the per-second hazard ((t-120)/(360-120))^5: mean 4.0 min, 80% between 3.5 and 4.5 min. At most one event shows at a time; a later one waits. Never fires offline: it waits for the player's return.",
+   "magnitude": "-4% pay per paper, never below 70% of base pay.",
+   "rationale": "D10 and D20. Cookie Clicker timer, bounded like Ruin. Grants and the Citation gig tiers (x4 money each) keep publishing net positive."
+  },
+  {
+   "name": "A rival adopts your method",
+   "mechanism": "Each paper schedules one. The published result's edge b becomes max(pubEvent.edgeFloor x b0, b x (1 - pubEvent.rivalFade)), for architecture edges (+25% to that net) and technique edges (+10% to all nets) alike. Drawn from its own seeded RNG stream.",
+   "timing": "Same window as the market event, sampled independently.",
+   "magnitude": "The edge loses 25% of what remains, never below 50% of the original: +25% becomes +18.75%, +10% becomes +7.5%.",
+   "rationale": "D10 and D20. Unpublished results keep their full edge, so publishing is a real choice for every AI result. Optional later twist (A Dark Room's Thief): spend prose to keep the edge, or accept the fade for a small permanent Citation boost."
+  },
+  {
+   "name": "Inspiration (positive, optional)",
+   "mechanism": "Golden-cookie-style windfall: Breakthrough (nets x3 for 60 s) 40%; Professor's notes (+min(15% of pool, 10 min of income)) 30%; Flow (presses x7 for 30 s) 15%; Rush order (a gig at x3 pay) 15%; Hot topic (Citations x7 for 77 s) 10%. The last effect is removed from the pool with 80% chance.",
+   "timing": "Per-second hazard with Tmin 240 s and Tmax 720 s: mean 7.6 min. Visible for 15 s. The timer restarts when the event fades. Never offline.",
+   "magnitude": "If every one is caught: about +1 Logit at Distill unlock and +20% to +30% speed to 1e8 and 1e9 run tokens. Nothing is lost if one is missed.",
+   "rationale": "Gives active players a lasting premium through optional upside. Cookie Clicker's model, scaled down so idle play stays viable."
+  },
+  {
+   "name": "Copies start to repeat (dedup)",
+   "mechanism": "Deterministic. Fires when a net's unique share S x (1 - (1 - 1/S)^n)/n first falls below 0.90. Until then, overlap is hand-waved (D5). While uncleared, copies bought from the event on add only their unique output, floored at 50% of nominal. Paying 3x the next copy cost (halved by Data cleaning) doubles S, restores full value to owned copies and gives that net x1.3.",
+   "timing": "At copies 5, 8, 15, 29, 56 and 111 with 16 starting seeds.",
+   "magnitude": "Uncleared, it never lowers output, and new copies keep at least 50% of nominal. Cleared, x1.3 per dedup (x2.86 after 4).",
+   "rationale": "D5. Birthday math ties repeats to the copy count. It works like an Antimatter Dimensions Dimension Boost, a gate that pays."
+  },
+  {
+   "name": "Grant awarded",
+   "mechanism": "Deterministic. When Citations reach 10 x 4^(n-1), grant n pays $500 x 6^(n-1) x LogitMult, once per run. Claimed automatically, offline too.",
+   "timing": "The first grant comes about 200 s after the first depth 1 paper (1,773 s active, 4,046 s casual in the sim).",
+   "magnitude": "$500, $3,000, $18,000, $108,000, $648,000.",
+   "rationale": "D10 grants. Money that does not need the gig board, which helps idle players and players who skip gigs."
+  },
+  {
+   "name": "Bad synthetic data (brainstorm)",
+   "mechanism": "Rolled when a training run finishes. Chance = 0.3 x (synthetic share)^2, x 0.5 if Data cleaning is owned. A bad model outputs x0.5 until retrained, which costs 50% of the training work and no tokens.",
+   "timing": "Once per training run that used synthetic data.",
+   "magnitude": "An all-synthetic run has a 30% chance (15% with cleaning); a 50% synthetic run has 7.5% (3.75%).",
+   "rationale": "The user's brainstorm. A recoverable malus like Cookie Clicker's Clot. The risk grows with greed, like A Dark Room's Wanderer. Leads into the data cleaning branch."
+  },
+  {
+   "name": "Overclock crash",
+   "mechanism": "While overclocked at level j, the crash chance per minute is 0.5% x j^2. A crash pauses all jobs for 30 s, and a running training job loses min(25% of its progress, 60 s of work).",
+   "timing": "A per-minute hazard. Live play only; offline time runs at stock clock.",
+   "magnitude": "L2 averages one crash per 50 min, L5 one per 8 min. Hardware is never lost.",
+   "rationale": "D15. A risk dial for active players, with the loss capped two ways."
+  },
+  {
+   "name": "Missed gig deadline",
+   "mechanism": "The gig pays nothing and refunds 50% of the tokens delivered. Money already held is never touched. Deadlines pause offline. At most 3 accepted gigs can wait to be filled.",
+   "timing": "Deadline: 60 s x 1.5^(tier-1) after accepting.",
+   "magnitude": "At most half of each open gig's tokens, and at most 3 open gigs.",
+   "rationale": "D6. A failed Clicker Heroes boss only sends the player back to farm. The unlock slack (income fills a gig in two thirds of its deadline) makes misses rare unless the player overcommits."
+  }
+ ],
+ "prestige": {
+  "formula": "Logits paid = floor(distill.k x (lifetimeTokens / distill.t0)^distill.exponent) - logitsEarned, with k = 15, t0 = 1.8e7 tokens and exponent 0.5, and lifetimeTokens counted across all runs as in core/distill.ts. That pays 0 Logits for the ladder alone, 15 at 1.8e7, 21 at 3.6e7, 22 at 4.05e7, 30 at 7.2e7, 35 at 1e8 and 79 at 5e8. Doubling the total needs 4x lifetime tokens.",
+  "unlock": "distill.unlockDelay (300 s) after the first paper is published. Every paper is a paper on AI, because only AI results (architectures and techniques) can be written up; skill and systems nodes cannot (D23). Distill then stays unlocked in later runs. A Distill needs a payout of at least 1 Logit, so it never pays zero. Lifetime tokens always grow because presses never stop paying, so every run can reach a paying Distill. A reset restores hand presses (1 token per press x the Logit multiplier, 1.85 with 17 Logits), the basic 1 MIPS computer and 4 KB RAM. Every unlock that keys off the ladder cap also keys off the first running net, so Warm start cannot skip the gig board. Sim probe: a strict idle player in run 2 with 0 to 8 Logits opens gig tier 1 at 45 s and publishes by 3,000 to 4,200 s.",
+  "bonus": "+5% to all production (raw, press and specialised tokens, and money) per Logit earned. Spending Logits in the Distill tree never lowers it. Suggested first nodes: Muscle memory (1 Logit, start at ladder L4) and Warm start (3 Logits, the Perceptron starts designed and coded). Both are head starts on existing tracks, not new tracks. Sim: the 17 Logits paid at the active unlock, plus those two nodes, bring run 2's first paper 2.36x sooner for active (target 2x), 2.72x for the pane and 1.4x to 1.6x for idle profiles.",
+  "rationale": "The shape is the AdVenture Capitalist and Realm Grinder square root (4x to double), which gives shorter, more regular runs than Cookie Clicker's cube root (8x). Pecorella's +50% to +200% reset rule maps to 2.25x to 9x lifetime per reset under a square root, so the suggested first Distill is at 2.25x run tokens, not the draft's 2x (+41%, below the rule). The subtract-earned rule already in core/distill.ts is kept, so a repeat reset at the same point still pays a little (AdCap) and a stuck player can always Distill forward. t0 is retuned from 2000 to 1.8e7: under the old values the ladder alone would pay 32 Logits before the first net exists, and the draft's 3e7 paid only 5 to 8 at the real unlock. The final sim's run tokens at unlock are 13M to 29M, which pays 12 to 19. The bonus counts Logits earned, not unspent, following Cookie Clicker, so spending never weakens the next run; AdCap's sacrificed angels can leave a run weaker, which is a soft-lock risk. The first node costs 1 Logit, like Legacy, so the first Distill always buys something."
+ },
+ "notes": [
+  "Simulator: /tmp/claude-0/-home-user-toKin/25254004-8b9c-5eba-aff1-2f239458dc4c/scratchpad/curves/final/sim.js, a patched copy of verify/sim.js (1 s ticks, greedy bots, seeded RNG streams). Its defaults reproduce the draft. 'node sim.js --changes' adds the final set (embedded as CHANGES, also listed in final_set.txt), and 'node med.js' prints median milestones over 5 seeds. New rules modelled: the dedup hand-wave, priority weighting, grants, technique edges, the pipeline budget, gig.maxOpen, typed design and gig shares paid in raw at 2x (worst case), 6 hardware tiers, and the 2.25x reset milestone. Not modelled: offline time, data, model sizes, GPUs, Transformer, converter stalls and buffers.",
+  "Profiles. Active: 6 presses/s, queues jobs (no D16 penalty), takes a gig only when the pool covers it (taking every offer and filling it over time is a trap: tiers 1 and 2 ask 2,533 T/s against 1,536 T/s of income at the cap), overclocks to L2. Pane: the same at 3 presses/s. Idle casual: 2 presses/s until the first net runs, then 60 s check-ins every 10 min with presses, never queues, no overclock. Idle strict: no presses once a net runs. Idle 5-min: casual with 5-min check-ins. Idle naive: buys every affordable copy and oversubscribes.",
+  "Active premium by time to Distill unlock: pane 1.23x, 5-min check-ins 1.83x, casual 2.22x, strict 2.54x, naive 3.25x. Judge the premium by time to a milestone, not by output at a fixed time: tier unlocks amplify any lead, so output ratios reach 100x by 60 min (active 1.5G run tokens against 7M to 14M idle). Inspiration adds about +1 Logit at unlock and +20% to +30% later. With press.netShare at 0 (D3), presses fall from 31% of active income at 10 min to under 5% after 30 min, and the premium then rests on queuing, overclock, catching gigs, Inspiration and pipeline routing.",
+  "Soft-lock audit (final). Tokens: presses always pay 2^L x LogitMult, and nothing touches press income. Money: gig tier 1 opens with the board, at the cap or with the first running net, with no income gate, and every gate is sticky; grants pay money from Citations without any gig. Probes: a strict idle player with live (non-sticky) gates now reaches Distill at 4,500 s; a player who never takes a gig publishes at 1,911 s, unlocks Distill at 2,211 s and trains the MLP at 2,591 s on grant money. Compute: the basic computer cannot be sold, and every job runs above zero speed, by priority or queue. Pipelines: converters draw at most 60% of raw income; code, design and gig shares always accept raw at 2x; research and papers only exist once converters do. Gigs: at most 3 open, 50% refund. Run 2: board opens on the first net. Dedup, market, rival, crash and bad-data effects all have floors. Distill needs at least 1 Logit, and lifetime tokens only grow.",
+  "Determinism: sample each event's fire time once when it is scheduled, from a seeded RNG stream per event type kept in the save. Run offline catch-up from wall-clock timestamps. Browser and pane then compute the same sequence, and reloads cannot re-roll outcomes. The per-second hazard makes means independent of frame rate.",
+  "Retunes against the current content/era1.json: distillK 8 to 15, distillT0 2000 to 1.8e7, unspentLogitBonus 0.02 (spending lowers it) to bonusPerLogit 0.05 on Logits earned, offlineCapSeconds 7200 to 28800. Current TARGETS: first agent at 168 s (target under 180 s), Distill unlock at 1,867 s (window 1,800 to 2,700 s), run-2 speedup 2.36x active (target 2x).",
+  "Readings that need the user's sign-off, because they interpret a decision: D3, the press-skill nodes are off (press.netShare 0); D19, the cap does not lift with hardware (ladder.capPerHardwareTier 0); D22, presses above 40/s are dropped (press.maxCounted, 0 = off); D5, overlap is hand-waved until the event (dedup.handWave 1); D8, net design from Conv and gigs from tier 3 take typed tokens; D23, skill and systems nodes cannot be published, so every paper is a paper on AI; D9, model sizes 2 and up need data tokens.",
+  "Gig $ per token falls x0.75 per tier by design, because offer intervals cap money per second and tokens inflate faster than money. If players read it as 'better clients pay worse', set gig.payStep = gig.tokensStep (8) for constant $ per token; tiers then pay x5.3 per tier in money per second.",
+  "Mid-game pace: with the final set, the active sim starts Attention training at 74 min and reaches 1.5G run tokens at 60 min and 17G at 90 min. Most players Distill near 36 min, but if the post-Distill mid-game feels fast, set gig.unlockSlack to 1.75 first.",
+  "Derived readouts worth showing next to the dev-panel sliders, all closed form: presses per ladder level and time to cap at each press rate; Pecorella buy-x10 and buy-max for copies; dedup event copy counts for the current seeds and threshold; the D16 table plus per-position speeds for the current priority weight; gig unlock income per tier and the money ceiling (sum of pay/interval); grant thresholds and pay; dollars per MIPS per hardware tier; training time per net and size (work/demand); raw against typed price for each typed cost; event timer mean and p10/p90; Logits against lifetime tokens; and the projected time to Distill unlock from the sim.",
+  "Input: drop KeyboardEvent.repeat events (a held key is not a new press) and count presses up to 40/s. Pane players press a button, so press.paneRate (3/s) is the planning number there, which makes the ladder phase about 2.75 min instead of 1.4.",
+  "GPU hook (brainstorm, not specified): the research curve prices GPU programming at depth 6 (1.56M research tokens). Earlier GPU scratch math fits the same shapes: VRAM spill as speed x (vram/footprint)^2 (the D16 shape), an Amdahl split with a CPU serial tail, and multi-board scaling n/(1 + c(n-1)). Each would take a similar small param set when the GPU brainstorm starts.",
+  "Every value is a placeholder for the balance bot. Tune exponents and ratios in small steps: the Idle Idol postmortem notes that a 0.01 change in a ratio makes a large difference by the 20th purchase."
+ ],
+ "changelog": [
+  "v1, 2026-10-12: final recommendation, re-simulated with the patched sim (scratchpad/curves/final/sim.js). Changes from the v0 draft follow.",
+  "Gigs, soft-lock fix: tier 1 has no income gate (new gig.tier1Gate = 0) and every tier gate is sticky. The draft's 267 T/s gate sat above the 218 T/s a non-pressing player's 4 copies earn, and the sim proved a 6 h lockout.",
+  "Gigs, soft-lock fix: the board opens at the ladder cap or when the first net runs (new gig.openOnNet = 1). Warm start skipped the cap and locked run 2 out of gigs.",
+  "gig.unlockSlack 2 to 1.5 (tier 2 opens at 1,067 T/s instead of 1,422) and gig.boardSize 3 to 8 (slider max 12), which cuts the idle money gap from about 7x to about 2.7x.",
+  "New gig.maxOpen = 3, and accepting a gig the pool covers delivers it at once. This bounds the drain where accepted gigs starve copies and nets. The active bot profile now says 'takes a gig when the pool covers it'; the draft's 'catches every gig offer' was a trap in the sim.",
+  "research.baseCost 8,000 to 16,000 and paper.baseCost 20,000 to 50,000. The sim suggested 40,000 for the paper; it was raised to 50,000 because the other changes sped the run up and pulled the active Distill unlock to 1,767 s, under the 1,800 s window. It is now 1,867 s.",
+  "distill.t0 3e7 to 1.8e7 (slider max 2e8). The draft paid 5 to 8 Logits at the real unlock. The sim suggested 1.2e7, recalibrated here to the final run tokens at unlock (13M to 29M), which pays 12 to 19 Logits.",
+  "dedup.bonus 1.5 to 1.3 (slider step 0.05): x1.5 compounded to x5.06 by copy 29, and old nets out-earned the next tier per MIPS.",
+  "net.copyOutput 60 to 90: offsets the lower dedup bonus and softens the idle income cliff at the first net.",
+  "net.designCost 30,000 to 25,000 and net.codeCost 45,000 to 35,000: the first net trains at 168 s instead of 178 s, leaving 12 s under the 180 s target instead of 2 s.",
+  "New conv.rawTypedMult = 2 (the sim's conv.rawCodeMult, generalised): code, design and gig typed shares can always be paid in raw at 2x. In the draft a code converter never saved raw tokens, and 'code only in code tokens once a code converter exists' could lock a player whose converter was paused, starved or sold.",
+  "New pipe.budgetShare = 0.6: converters draw at most 60% of raw income. Fixes the drain lock where converters kept the pool at 0.",
+  "D8 gap and contradiction: new pipeline-routing curve. Specialised tokens fill sinks (progress bars), not pools; converters move to the next sink, then fill a buffer (new pipe.bufferSeconds) and stall. Typed demand now reaches net design from Conv (new net.typedDesignFromTier) and gigs from tier 3 (new gig.typedFromTier, gig.typedShare), so pipelines feed every consumer D8 names.",
+  "D8 gap: the Transformer gets numbers (new conv.transformerRatio, conv.transformerMips).",
+  "D5 contradiction: new dedup.handWave = 1. Copies count fully until the repeat event, then only new copies lose their overlap. The draft's penalty cut 4 copies by 9% before the event fired.",
+  "D17 gap and contradiction: new compute.priorityWeight = 1.5 makes the priority list decide which jobs slow down most while total work stays C^2/D. The Scheduler is defined as automatic queuing of every job that does not fit, lowest first.",
+  "D3 contradiction: press.netShare 0.02 to 0. The press-skill nodes are off until the user signs off on a second press track; Flow and Muscle memory are noted as a buff and a head start, not tracks.",
+  "D22 contradiction: press.maxCounted 15 to 40 (slider 0 to 60, 0 = no cap), so only macros are dropped.",
+  "D9 gap: new model-size curve with scale.maxSize, scale.outStep, scale.mipsStep, scale.workStep, scale.ramStep, scale.dataBase and scale.dataStep, plus Bigger nets I and II in the tree.",
+  "D10 gap: new grants curve and event (grant.citeGate, grant.citeStep, grant.pay, grant.payStep). The never-gig player now trains the MLP on grant money.",
+  "D10 and D23 gaps: new research.techEdge = 0.1 gives technique papers an edge for the rival event to fade. Only AI results (architectures and techniques) can be published, which defines 'paper on AI'. GPU programming, Scheduler, Write it up and the press nodes cannot be published.",
+  "D15 gap: hardware gets a second CPU board ('more cores') as tier 3 and a sixth tier (mainframe time, $13.2M, +3,888 MIPS).",
+  "conv.unlockLifetime renamed conv.unlockRunTokens: it counts tokens made in this run, because core/distill.ts keeps lifetimeTokens across runs and would open converters at t = 0 in run 2.",
+  "Data brainstorm: added data.scrapeInput, data.scrapeMips, data.agentShare, data.scanCost, data.scanRatio and data.scanSeeds, so manual scraping, agentic scraping and book scanning have numbers.",
+  "Prestige: the suggested first Distill moves from 2x to 2.25x run tokens, because 2x gives +41%, below Pecorella's +50% lower bound. The reset text now says presses restart at 1 token x the Logit multiplier, not a flat 1.",
+  "Fact fixes: 5e8 lifetime paid 61 Logits, not 63 (now 79 under t0 1.8e7); the ladder is 492.6 presses, 82 s and 246 s in closed form (84 and 247 s in the tick sim); Cookie Clicker's x11-16 price and x5.4-8 CpS per tier holds only for tiers 2 to 15 (x10.8-16.5 and x5.4-7.3); Cookie Clicker's tiered upgrade prices do not step by a fixed factor; AdCap cycle times step x5, x2, x2, x2, x4, x4, x4, x4, x6, not x1.5-4; AdCap has no reputation currency, so the Citations inspiration is now Paperclips' Trust; Kittens skips only catnip deficits offline, with a 10-game-year cap; real CPUs did not climb x2-4 per generation; Cookie Clicker's 15/s check only unlocks an achievement; Pecorella's reset rule comes from the GDC Europe 2016 slides.",
+  "Pacing targets, events, soft-lock audit and notes were re-simulated with the final set (medians over 5 seeds): first net 168 s active, Distill unlock 1,867 s active and 4,140 s casual idle, run-2 speedup 2.36x active."
+ ]
+}

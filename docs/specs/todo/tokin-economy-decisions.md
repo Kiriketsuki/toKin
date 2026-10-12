@@ -191,9 +191,22 @@ Code pane uses its on-screen button, because a pane gets no raw keys.
 - The player can never soft-lock: a run always has a way to reach Distill, and
   Distill never leaves the next run stuck.
 
+### D24. Curves v1 are the placeholders
+
+The curve set from the 2026-10-12 idle-game survey is the placeholder economy.
+`curves-v1/README.md` describes it, and `curves-v1/params.json` holds the
+values. The user tunes them in the Curve Lab
+(<https://claude.ai/artifact/QJbjCvsQcRgX3QRY4uxpXH>) and marks a preset as
+chosen. The balance bot sets the final values. The survey also proposes new
+mechanics and reads some decisions in a particular way. Those are listed in
+`curves-v1/README.md` and need a yes or a no.
+
 ## Brainstorm notes
 
 These are ideas under discussion, not decisions.
+
+The option sets and questions for both topics are in
+`tokin-brainstorm-gpu-data.md`.
 
 ### Data gathering
 
@@ -206,16 +219,18 @@ These are ideas under discussion, not decisions.
 
 ### GPUs
 
-Not started.
+Ten options are drafted, from the arcade board to board market weather. No
+choice yet.
 
 ## Open questions
 
 | # | Question |
 |:--|:--|
-| Q5 | Curves and prices. A survey of common idle games is under way. The recommendations go in as placeholders, with a dev panel to tweak them. |
+| Q13 | The survey's new mechanics: Inspiration events, grants, the Logit bonus on Logits earned, the Distill tree, gig board details, hardware tiers, RAM and overclock. Yes or no to each. |
+| Q14 | The survey's readings of D3, D5, D8, D9, D19, D22 and D23. Confirm or change each. |
 
 Resolved: Q1 and Q4 by D11 to D13, Q3 by D14, Q10 by D16, Q11 by D17, Q2 and
-Q12 by D18, Q6 by D19, Q7 by D20, Q8 by D21, Q9 by D22.
+Q12 by D18, Q6 by D19, Q7 by D20, Q8 by D21, Q9 by D22, Q5 by D24.
 
 ## Later
 
