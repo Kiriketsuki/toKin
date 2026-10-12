@@ -16,6 +16,7 @@ updated with this file).
 - Simple first. Leave room for a sprawling tech tree later.
 - Active play pays more than idle play. Both are supported playstyles.
 - Accuracy is hand-waved where it helps the game.
+- Never soft-lock the player. Every state has a way forward.
 
 ## Decisions
 
@@ -104,7 +105,7 @@ tune it later.
   which unlocks better clients, grants and later hires.
 - Publishing has two costs. Gig and contract pay drop a little as the market
   catches up, and the edge from that research fades because everyone has it.
-  Q7 checks that we read "both ways" right.
+  D20 sets how the costs arrive.
 
 ### D11. Compute is one number, in MIPS on the CPU
 
@@ -159,18 +160,62 @@ Early nets come in fixed sizes, so each training run asks for a fixed amount of
 MIPS, set by the net. Later stages let the player choose a model's size. The
 sweet spot of data tokens per parameter matters from then on.
 
+### D19. The first net unlocks when the first computer hits its limit
+
+The typing ladder runs up against what the basic computer can take. When typing
+reaches that limit, the first net unlocks as the way past it. So the manual
+ladder has a cap on the first machine. (Reading of "when our first computer is
+at its limit". Confirm.)
+
+### D20. Publishing costs arrive as pseudorandom events
+
+After the player publishes, the costs fire as events at irregular times, like
+golden cookies in Cookie Clicker: "the market catches up" (gig and contract pay
+drop a little) and "a rival adopts your method" (the edge from that research
+fades). A paper does not pay its costs at once.
+
+### D21. Setting: a student in a garage, in the 19xx
+
+The game opens with a student in a garage, some time in the 1900s. History is
+loose. We do not follow it exactly.
+
+### D22. Real key presses count in the browser
+
+In the browser, any key press on the keyboard counts as a press. The Claude
+Code pane uses its on-screen button, because a pane gets no raw keys.
+
+### D23. Prestige stays Distill
+
+- Distill stays as the prestige reset.
+- It unlocks a short while after the player publishes their first paper on AI.
+- The player can never soft-lock: a run always has a way to reach Distill, and
+  Distill never leaves the next run stuck.
+
+## Brainstorm notes
+
+These are ideas under discussion, not decisions.
+
+### Data gathering
+
+- Tokens go into manual web scraping and copy-pasting.
+- Tokens go into synthetic data generation algorithms.
+- Event: synthetic data comes out bad, so the model trained on it is bad.
+- A data cleaning branch can grow out of that.
+- Later, tokens from agentic AI do the web scraping, and scan books and
+  manuscripts.
+
+### GPUs
+
+Not started.
+
 ## Open questions
 
 | # | Question |
 |:--|:--|
-| Q5 | Prices: the typing ladder ratio and the costs of the first net. |
-| Q6 | What unlocks the first net: a typing level, or a token total? |
-| Q7 | Do both publishing costs apply to every paper? |
-| Q8 | Setting: the 1950s garage, or another frame? |
-| Q9 | Do real key presses count in the browser, or only the on-screen button? |
+| Q5 | Curves and prices. A survey of common idle games is under way. The recommendations go in as placeholders, with a dev panel to tweak them. |
 
 Resolved: Q1 and Q4 by D11 to D13, Q3 by D14, Q10 by D16, Q11 by D17, Q2 and
-Q12 by D18.
+Q12 by D18, Q6 by D19, Q7 by D20, Q8 by D21, Q9 by D22.
 
 ## Later
 
@@ -178,7 +223,6 @@ Q12 by D18.
 - Custom model sizes, with a sweet spot of data tokens per parameter.
 - Data gathering: scraping replaces random seeds.
 - Client management: ladders, promotions, full-time contracts.
-- Prestige: Distill or a replacement. Not discussed yet.
 - Story and the era roadmap.
 - The design system, updated for this economy. The draft at
   <https://claude.ai/artifact/YJNB5Xq6cu3pSQEQqUNcsE> was built for the old
