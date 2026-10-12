@@ -219,10 +219,37 @@ mechanics and reads some decisions in a particular way. Those are listed in
   2.25 times sooner for an active player and 1.5 times for a casual idle
   player.
 
+### D26. Prompt tokens are shelved
+
+The mod gets no prompt tokens in the first build. Hands are the only source at
+the start (D2), in the mod and in the browser alike.
+
+### D27. The pane has eight tabs that reveal as they unlock
+
+| Tab | Holds | Shows from |
+|:--|:--|:--|
+| Desk | The press button and the typing ladder | The start |
+| Nets | Design, code, training, copies and dedup | The first net unlocks (D19) |
+| Machine | Jobs, priorities, hardware, RAM and overclock | The first job runs |
+| Gigs | The gig board: offers, deadlines and pay | Gig tier 1 opens |
+| Pipelines | Converters and where each type goes | Converters unlock |
+| Research | The research tree | The first research tokens |
+| Papers | Papers, Citations and Distill | The first AI result |
+| Log | Events and milestones | The start |
+
+A fresh game shows Desk and Log only. A tab shows a dot when it holds
+something new, as the Build 2 spec has it.
+
+### D28. Build 1 saves are archived
+
+A Build 1 save moves to an archive key. A fresh run starts that keeps the
+founder's name and logs a line about the old ledger.
+
 ## Shelved until after the first build
 
-The brainstorm notes below, `tokin-brainstorm-gpu-data.md`, and every item in
-D25's shelved list wait until a base run of the first build is playable.
+The brainstorm notes below, `tokin-brainstorm-gpu-data.md`, every item in
+D25's shelved list and prompt tokens (D26) wait until a base run of the first
+build is playable.
 
 ## Brainstorm notes
 
@@ -247,15 +274,11 @@ choice yet.
 
 ## Open questions
 
-| # | Question |
-|:--|:--|
-| Q15 | Prompt tokens in the mod (from the Build 2 spec): keep for the first build, or shelve? D2 says hands are the only source at the start. |
-| Q16 | The pane for the new economy: which tabs, and in which order they reveal. |
-| Q17 | Build 1 saves: archive them and start fresh with the founder's name, as the Build 2 spec says? |
+None. The first-build spec comes next.
 
 Resolved: Q1 and Q4 by D11 to D13, Q3 by D14, Q10 by D16, Q11 by D17, Q2 and
 Q12 by D18, Q6 by D19, Q7 by D20, Q8 by D21, Q9 by D22, Q5 by D24, Q13 and
-Q14 by D25.
+Q14 by D25, Q15 by D26, Q16 by D27, Q17 by D28.
 
 ## Later
 
@@ -263,6 +286,7 @@ Q14 by D25.
 - Custom model sizes, with a sweet spot of data tokens per parameter.
 - Data gathering: scraping replaces random seeds.
 - Client management: ladders, promotions, full-time contracts.
+- Prompt tokens in the mod.
 - Story and the era roadmap.
 - The design system, updated for this economy. The draft at
   <https://claude.ai/artifact/YJNB5Xq6cu3pSQEQqUNcsE> was built for the old
