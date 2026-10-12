@@ -91,7 +91,7 @@ tune it later.
   - Architecture: Perceptron, multi-layer net, convolution, recurrence,
     attention, Transformer.
   - Scale: model size. More parameters need more data tokens and more compute
-    time. The size question is open (Q2).
+    time. Fixed sizes come first and custom sizes later (D18).
   - Techniques: multipliers such as backprop, dropout, data cleaning (cheaper
     dedup) and vectorised maths.
 - A research node such as GPU programming unlocks GPUs.
@@ -120,11 +120,11 @@ tune it later.
   down by more than their fair share. The story is context switching and IO.
 - A player who manages actively queues jobs instead, so the running jobs keep
   full speed.
-- The slowdown is the penalty for idle play. The curve is open (Q10).
+- The slowdown is the penalty for idle play. D16 sets the curve.
 
 ### D13. Jobs are managed by hand or with priorities
 
-Both playstyles are supported. Q11 asks how priorities and the slowdown
+Both playstyles are supported. D17 sets how priorities and the slowdown
 interact.
 
 ### D14. Research takes no compute
@@ -139,25 +139,43 @@ Faster chips, more cores, more machines, RAM and overclocking. RAM caps how big
 a net the machine can load, which ties to Q2. Overclocking adds MIPS and can
 crash the machine as an event.
 
+### D16. The slowdown starts gently and turns steep
+
+When jobs oversubscribe, each job runs at (capacity / demand) squared. Jobs that
+ask for 1.25 times the capacity run at 64%, and the machine does 80% of its
+work. Twice the demand runs each job at 25%, and the machine does half its
+work. Three times the demand leaves a third.
+
+### D17. Priorities steer first, and queue once earned
+
+At first, a priority list only decides which jobs slow down most. Only queuing
+by hand removes the slowdown. A scheduler research node later turns the
+priority list into an automatic queue for the lowest jobs, so idle play earns
+its way out of the penalty.
+
+### D18. Fixed model sizes first, custom sizes later
+
+Early nets come in fixed sizes, so each training run asks for a fixed amount of
+MIPS, set by the net. Later stages let the player choose a model's size. The
+sweet spot of data tokens per parameter matters from then on.
+
 ## Open questions
 
 | # | Question |
 |:--|:--|
-| Q2 | Scale: a size choice with a sweet spot each time you train (near 20 data tokens per parameter), or fixed sizes per architecture? |
 | Q5 | Prices: the typing ladder ratio and the costs of the first net. |
 | Q6 | What unlocks the first net: a typing level, or a token total? |
 | Q7 | Do both publishing costs apply to every paper? |
 | Q8 | Setting: the 1950s garage, or another frame? |
 | Q9 | Do real key presses count in the browser, or only the on-screen button? |
-| Q10 | The slowdown curve when jobs oversubscribe. Proposed: each job runs at (capacity / demand) squared, so a machine asked for twice its MIPS does half its work. |
-| Q11 | Does a priority list avoid the slowdown by queuing the lowest jobs, or only decide who slows down most? If it avoids it, is it earned through research? |
-| Q12 | Does a training run ask for a fixed amount of MIPS set by the net's size, or take whatever compute the player gives it? |
 
-Resolved: Q1 and Q4 by D11 to D13, Q3 by D14.
+Resolved: Q1 and Q4 by D11 to D13, Q3 by D14, Q10 by D16, Q11 by D17, Q2 and
+Q12 by D18.
 
 ## Later
 
 - GPUs and full LLMs.
+- Custom model sizes, with a sweet spot of data tokens per parameter.
 - Data gathering: scraping replaces random seeds.
 - Client management: ladders, promotions, full-time contracts.
 - Prestige: Distill or a replacement. Not discussed yet.
