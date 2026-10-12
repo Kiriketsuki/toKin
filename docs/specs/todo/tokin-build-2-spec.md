@@ -1,6 +1,6 @@
 # Feature: toKin Build 2 (Token Economy and Browser Host)
 
-> **Economy superseded (2026-10-11).** The economy in this spec (the token split, the compute split, buyers and the Era 1 tables) is being redesigned step by step. `tokin-economy-decisions.md` is the current record. The browser host and the shared pane are unchanged.
+> **Economy superseded (2026-10-11).** The economy in this spec (the token split, the compute split, buyers and the Era 1 tables) is being redesigned step by step. `tokin-economy-decisions.md` is the current record, and `tokin-first-build-spec.md` replaces this spec's economy. The browser host and the shared pane are unchanged.
 
 ## Overview
 

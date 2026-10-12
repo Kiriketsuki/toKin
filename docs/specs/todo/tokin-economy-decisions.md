@@ -229,12 +229,12 @@ the start (D2), in the mod and in the browser alike.
 | Tab | Holds | Shows from |
 |:--|:--|:--|
 | Desk | The press button and the typing ladder | The start |
-| Nets | Design, code, training, copies and dedup | The first net unlocks (D19) |
+| Nets | Design, code, training, copies and dedup | The ladder cap unlocks the first net (D19) |
 | Machine | Jobs, priorities, hardware, RAM and overclock | The first job runs |
-| Gigs | The gig board: offers, deadlines and pay | Gig tier 1 opens |
+| Gigs | The gig board: offers, deadlines and pay | The gig board opens |
 | Pipelines | Converters and where each type goes | Converters unlock |
-| Research | The research tree | The first research tokens |
-| Papers | Papers, Citations and Distill | The first AI result |
+| Research | The research queue and tree | The first research converter |
+| Papers | Papers, Citations and Distill | Write it up is researched |
 | Log | Events and milestones | The start |
 
 A fresh game shows Desk and Log only. A tab shows a dot when it holds
@@ -274,7 +274,8 @@ choice yet.
 
 ## Open questions
 
-None. The first-build spec comes next.
+None. The first-build spec, `tokin-first-build-spec.md`, holds the open
+questions about building it.
 
 Resolved: Q1 and Q4 by D11 to D13, Q3 by D14, Q10 by D16, Q11 by D17, Q2 and
 Q12 by D18, Q6 by D19, Q7 by D20, Q8 by D21, Q9 by D22, Q5 by D24, Q13 and
