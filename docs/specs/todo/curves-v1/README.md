@@ -59,11 +59,12 @@ minutes. The Curve Lab shows the same table live.
 | First AI paper | 26:07 | 60:00 |
 | Distill unlocks | 31:07 | 65:00 |
 | Suggested first Distill (2.25x run tokens) | 35:54 | 76:37 |
-| Run 2 first paper | 11:24 | 50:00 |
+| Run 2 first paper (Logit bonus only) | 11:35 | 40:00 |
 
 The active player reaches Distill about 2.1 times sooner than the casual idle
-player. Run 2 reaches its first paper 2.3 times sooner for an active player,
-but only 1.2 times sooner for the casual idle player, because every converter,
+player. With only the Logit bonus carried over (D25), run 2 reaches its first
+paper 2.25 times sooner for an active player, 2.16 times for the pane and 1.5
+times for the casual idle player. Idle runs stay slow because every converter,
 node and paper waits for a check-in. That idle gap is a known issue to tune.
 
 ## The curves in short
@@ -118,26 +119,33 @@ node and paper waits for a check-in. That idle gap is a known issue to tune.
 - **Offline.** Full idle rate for up to 8 hours, with no presses, events or
   crashes.
 
-## New mechanics the survey proposes
+## The first build (D25)
 
-These are not decisions yet. Each needs a yes or a no.
+The numbers above stand. These parts of the survey are shelved until after the
+first build, and the Curve Lab tags their sliders as shelved:
 
-- **Inspiration:** positive golden-cookie events for active players
-  (Breakthrough, Professor's notes, Flow, Rush order, Hot topic). Optional
-  upside only.
-- **Grants:** money from Citation thresholds, so a player who never takes a
-  gig can still buy hardware.
-- **Logit bonus on Logits earned:** +5% each, so spending Logits never weakens
-  the next run. Today the core gives +2% per unspent Logit.
-- **Distill tree:** first nodes Muscle memory (start at ladder L4) and Warm
-  start (the Perceptron starts designed and coded).
-- **Gig board details:** offer intervals, deadlines, a 50% refund on a missed
-  deadline, at most 3 open gigs.
-- **Hardware tiers, RAM and overclock** as described above.
+- Inspiration events.
+- Grants.
+- The Distill tree (Muscle memory, Warm start). Distill keeps one placeholder
+  benefit: +5% production per Logit earned. It is tuned after the first base
+  run.
+- Press-skill research nodes.
+- Model sizes above Small and the Bigger nets nodes, because they need data.
+- The Synthetic data node and bad-data events.
+- GPU programming and everything after it, and the Transformer converter.
 
-## Readings that need sign-off
+Decided mechanics keep what they need: the gig board's offers and deadlines
+(D6), hardware tiers, RAM and overclock (D15), and Data cleaning research,
+which makes dedup cheaper (D5).
 
-The survey had to interpret these decisions. Confirm or change each one.
+Without grants, a player who never takes a gig still reaches Distill but cannot
+buy the RAM for the multi-layer net. That is not a soft-lock, because gig tier 1
+is always open.
+
+## Readings
+
+The survey interpreted these decisions, and the numbers encode them. They stand
+with the numbers (D25).
 
 - D3: no press-skill research nodes for now (`press.netShare` 0).
 - D19: the ladder cap does not rise with new hardware
@@ -147,7 +155,7 @@ The survey had to interpret these decisions. Confirm or change each one.
 - D8: net design from convolution on, and gigs from tier 3 on, ask for typed
   tokens.
 - D23: only AI results can be published, so every paper is a paper on AI.
-- D9: model sizes above Small need data tokens.
+- D9: model sizes above Small need data tokens. Moot in the first build.
 
 ## Soft-lock audit
 
@@ -156,7 +164,6 @@ The simulation probed each way a player could get stuck:
 - Presses always pay, and nothing touches press income.
 - Gig tier 1 opens with no income gate, at the ladder cap or with the first
   running net. Tier gates stay open once reached.
-- Grants pay money without gigs.
 - The basic computer cannot be sold, and every job runs above zero speed.
 - Converters cannot drain the pool, and typed costs always accept raw tokens.
 - Every penalty has a floor.

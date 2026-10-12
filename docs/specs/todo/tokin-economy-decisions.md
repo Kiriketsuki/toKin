@@ -201,6 +201,29 @@ chosen. The balance bot sets the final values. The survey also proposes new
 mechanics and reads some decisions in a particular way. Those are listed in
 `curves-v1/README.md` and need a yes or a no.
 
+### D25. The first build: curves v1 without the extra mechanics
+
+- The curves v1 numbers stand.
+- Shelved until after the first build: Inspiration events, grants, the Distill
+  tree, press-skill research nodes, model sizes above Small, data gathering
+  and the Synthetic data node, GPU programming and the whole GPU era, the
+  Transformer converter, client ladders, and story. The game should not bloat.
+- Decided mechanics keep what they need: the gig board's offers and deadlines
+  (D6), hardware tiers, RAM and overclock (D15), and Data cleaning research
+  (D5).
+- Distill has a benefit. The placeholder is +5% production per Logit earned.
+  It is tuned after the first base run.
+- The survey's readings of D3, D5, D8, D19, D22 and D23 stand, as the numbers
+  encode them. The D9 reading is moot while model sizes are shelved.
+- Simulated: run 1 is unchanged without grants. Run 2 reaches its first paper
+  2.25 times sooner for an active player and 1.5 times for a casual idle
+  player.
+
+## Shelved until after the first build
+
+The brainstorm notes below, `tokin-brainstorm-gpu-data.md`, and every item in
+D25's shelved list wait until a base run of the first build is playable.
+
 ## Brainstorm notes
 
 These are ideas under discussion, not decisions.
@@ -226,11 +249,13 @@ choice yet.
 
 | # | Question |
 |:--|:--|
-| Q13 | The survey's new mechanics: Inspiration events, grants, the Logit bonus on Logits earned, the Distill tree, gig board details, hardware tiers, RAM and overclock. Yes or no to each. |
-| Q14 | The survey's readings of D3, D5, D8, D9, D19, D22 and D23. Confirm or change each. |
+| Q15 | Prompt tokens in the mod (from the Build 2 spec): keep for the first build, or shelve? D2 says hands are the only source at the start. |
+| Q16 | The pane for the new economy: which tabs, and in which order they reveal. |
+| Q17 | Build 1 saves: archive them and start fresh with the founder's name, as the Build 2 spec says? |
 
 Resolved: Q1 and Q4 by D11 to D13, Q3 by D14, Q10 by D16, Q11 by D17, Q2 and
-Q12 by D18, Q6 by D19, Q7 by D20, Q8 by D21, Q9 by D22, Q5 by D24.
+Q12 by D18, Q6 by D19, Q7 by D20, Q8 by D21, Q9 by D22, Q5 by D24, Q13 and
+Q14 by D25.
 
 ## Later
 

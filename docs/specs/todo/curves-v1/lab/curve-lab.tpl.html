@@ -85,6 +85,7 @@
   .prm.changed .rst { visibility: visible; }
   .prm.changed .lab label { color: var(--hot); }
   .prm.changed { background: var(--cell-on); }
+  .prm.shelved { opacity: 0.55; }
   .tag { display: inline-block; border: 1px solid var(--shadow); color: var(--ink-muted); font-size: 10px; letter-spacing: 0.06em; padding: 0 5px; margin-left: 6px; vertical-align: 1px; }
   .unit { color: var(--ink-muted); font-size: 11px; }
   .prm .rec { color: var(--ink-muted); font-size: 11px; text-align: right; white-space: nowrap; align-self: start; }
@@ -193,7 +194,7 @@
       <div class="pane" id="p-pacing" role="tabpanel" aria-labelledby="t-pacing">
         <div>
           <h2>Milestones, run 1</h2>
-          <p class="hint">Minutes and seconds from the first press. Targets come from the survey. A flag marks a result more than 25% off its target.</p>
+          <p class="hint">Minutes and seconds from the first press. Targets come from the survey. A flag marks a result more than 25% off its target. First-build rules: no grants, and run 2 gets only the Logit bonus.</p>
         </div>
         <div class="tbl"><table id="ms-table"></table></div>
         <div>
@@ -211,6 +212,8 @@
         <ul class="checks" id="checks"></ul>
         <div><h2>Not in the simulation yet</h2><p class="hint">These sliders are saved with a preset but do not change the pacing results yet.</p></div>
         <p class="hint" id="unsim"></p>
+        <div><h2>Shelved until after the first build</h2><p class="hint">Inspiration events, grants, the Distill tree, model sizes, data gathering, the Transformer converter and press-skill nodes. The simulation ignores these sliders.</p></div>
+        <p class="hint" id="shelved"></p>
       </div>
 
       <div class="pane" id="p-curves" role="tabpanel" aria-labelledby="t-curves" hidden>
@@ -233,6 +236,10 @@
   const SIM_SRC = $('sim-src').textContent
   const RECV = Object.fromEntries(REC.map((p) => [p.key, p.value]))
   const DRAFT_KEY = 'tokin-curve-lab-draft'
+  // Mechanics shelved until after the first build (D25). Their sliders stay so a
+  // preset keeps the numbers, but the simulation ignores them.
+  const SHELVED = ['grant.', 'insp.', 'distill.firstNodeCost', 'scale.', 'data.', 'conv.transformerRatio', 'conv.transformerMips', 'press.netShare']
+  const isShelved = (key) => SHELVED.some((s) => key === s || (s.endsWith('.') && key.startsWith(s)))
 
   // ---------------------------------------------------------------- simulation
   // The survey's simulator runs in a worker, so sliders stay smooth while it works.
@@ -244,13 +251,14 @@
       try {
         const P = { ...DEFAULTS, ...SIM_EXTRA, ...values }
         P['conv.unlockLifetime'] = P['conv.unlockRunTokens']
+        P['grant.pay'] = 0
         const ST = strategies(P)
         const out = {}
         for (const n of names) {
           const r1 = simulate(P, ST[n], { horizon: 7200, minT: 5400, traceEvery: 60 })
           let r2paper = null
           if (r1.unlockLife) {
-            const r2 = simulate(P, ST[n], { logits: r1.unlockLogits, lifeStart: r1.unlockLife, stop: 'firstPaper', startLevel: 4, warmStart: true, horizon: 7200 })
+            const r2 = simulate(P, ST[n], { logits: r1.unlockLogits, lifeStart: r1.unlockLife, stop: 'firstPaper', horizon: 7200 })
             r2paper = r2.ms['first paper'] ?? null
           }
           out[n] = { ms: r1.ms, trace: r1.trace.map((x) => [x.t, x.raw]), unlockLogits: r1.unlockLogits ?? null, twoXLogits: r1.twoXLogits ?? null, r2paper }
@@ -304,12 +312,13 @@
     try {
       const P = { ...mainSim.DEFAULTS, 'sim.resetMult': 2.25, ...values }
       P['conv.unlockLifetime'] = P['conv.unlockRunTokens']
+      P['grant.pay'] = 0
       const ST = mainSim.strategies(P)
       const out = {}
       for (const n of NAMES) {
         const r1 = mainSim.simulate(P, ST[n], { horizon: 7200, minT: 5400, traceEvery: 60 })
         let r2paper = null
-        if (r1.unlockLife) r2paper = mainSim.simulate(P, ST[n], { logits: r1.unlockLogits, lifeStart: r1.unlockLife, stop: 'firstPaper', startLevel: 4, warmStart: true, horizon: 7200 }).ms['first paper'] ?? null
+        if (r1.unlockLife) r2paper = mainSim.simulate(P, ST[n], { logits: r1.unlockLogits, lifeStart: r1.unlockLife, stop: 'firstPaper', horizon: 7200 }).ms['first paper'] ?? null
         out[n] = { ms: r1.ms, trace: r1.trace.map((x) => [x.t, x.raw]), unlockLogits: r1.unlockLogits ?? null, twoXLogits: r1.twoXLogits ?? null, r2paper }
       }
       return { id, out, checks: mainSim.checks(P), took: performance.now() - t0, simKeys: Object.keys(mainSim.DEFAULTS) }
@@ -458,8 +467,9 @@
       '<tr><td>Total</td><td></td><td>' + num(tokens) + '</td><td>' + presses.toFixed(1) + '</td><td colspan="3"></td></tr>'
   }
   function markUnsimulated() {
-    const keys = REC.filter((p) => !simKeys.has(p.key)).map((p) => p.key)
+    const keys = REC.filter((p) => !simKeys.has(p.key) && !isShelved(p.key)).map((p) => p.key)
     $('unsim').textContent = keys.join(', ')
+    $('shelved').textContent = REC.filter((p) => isShelved(p.key)).map((p) => p.key).join(', ')
     for (const k of keys) {
       const lab = document.querySelector('[data-key="' + CSS.escape(k) + '"] .lab label')
       if (lab && !lab.querySelector('.tag')) lab.insertAdjacentHTML('beforeend', '<span class="tag">not simulated</span>')
@@ -497,8 +507,8 @@
       '<details class="group" data-group="' + escapeHtml(g.name) + '"' + (OPEN.has(g.name) ? ' open' : '') + '><summary><span>' + escapeHtml(g.name) + '</span><span class="meta" id="gm-' + gi + '">' + g.items.length + '</span></summary><div class="rows">' +
       g.items.map((p) => {
         const id = 'p-' + p.key.replace(/[^a-zA-Z0-9]/g, '-')
-        return '<div class="prm" data-key="' + escapeHtml(p.key) + '" data-g="' + gi + '">' +
-          '<div class="lab"><label for="' + id + '">' + escapeHtml(p.label) + '</label> <span class="unit">' + escapeHtml(p.unit || '') + '</span><div class="key">' + escapeHtml(p.key) + '</div></div>' +
+        return '<div class="prm' + (isShelved(p.key) ? ' shelved' : '') + '" data-key="' + escapeHtml(p.key) + '" data-g="' + gi + '">' +
+          '<div class="lab"><label for="' + id + '">' + escapeHtml(p.label) + (isShelved(p.key) ? '<span class="tag">shelved</span>' : '') + '</label> <span class="unit">' + escapeHtml(p.unit || '') + '</span><div class="key">' + escapeHtml(p.key) + '</div></div>' +
           '<div class="rec" title="Recommended value">rec ' + escapeHtml(String(p.value)) + '</div>' +
           (p.note ? '<div class="note" title="' + escapeHtml(p.note) + '">' + escapeHtml(p.note) + '</div>' : '') +
           '<div class="ctl"><input type="range" id="' + id + '" min="' + p.min + '" max="' + p.max + '" step="' + p.step + '" value="' + values[p.key] + '" aria-label="' + escapeHtml(p.label) + '">' +
