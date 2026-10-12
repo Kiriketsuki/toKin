@@ -20,7 +20,8 @@ Curve Lab, and the balance bot sets the final values later.
 | `recommendation.json` | The 23 curves with formulas and rationale, pacing targets, events, prestige, notes and the changelog from the draft |
 | `survey.json` | The four game surveys with sources, the fact checks, the gaps found and the simulation report |
 | `brainstorm.json` | The GPU era and data gathering option sets, with progressions and open questions |
-| `sim.cjs` | The pacing simulator: 1 s ticks, seeded random streams, greedy bots. Run `node sim.cjs --help`-style flags from its header |
+| `sim.cjs` | The pacing simulator: 1 s ticks, seeded random streams, greedy bots. Its header lists the command-line flags |
+| `lab/` | The Curve Lab source. `python3 lab/build.py` rebuilds the page from the template, `params.json`, the formulas and `lab/sim-core.js` |
 
 ## Sources
 
